@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { useCallback, useMemo, useState } from "react";
 import { RadioGroup } from "@ark-ui/react/radio-group";
+import { css } from "@styled-system/css";
 
 type State = {
   dateTime: Date;
@@ -130,54 +131,225 @@ export function TimestampPage() {
   );
 
   return (
-    <div>
-      <h1>Timestamp and Date Converter</h1>
-      <p>
+    <div
+      className={css({
+        maxW: "600px",
+        mx: "auto",
+        p: "6",
+        borderRadius: "md",
+        boxShadow: "sm",
+        display: "flex",
+        flexDir: "column",
+        gap: "4",
+      })}
+    >
+      <h2 className={css({ fontSize: "2xl", fontWeight: "bold", mb: "2" })}>
+        Timestamp and Date Converter
+      </h2>
+      <p className={css({ mb: "4" })}>
         Convert timestamps to dates. Both millisecond timestamps (like
         JavaScript) and second timestamps (UNIX) are supported.
       </p>
-      <div>
-        <label>Timestamp:</label>
+
+      <div
+        className={css({
+          display: "flex",
+          flexDir: "column",
+          gap: "2",
+          mb: "4",
+        })}
+      >
+        <label className={css({ fontWeight: "medium", mb: "1" })}>
+          Timestamp:
+        </label>
         <input
+          className={css({
+            border: "1px solid",
+            borderRadius: "md",
+            p: "2",
+            width: "100%",
+            _focus: {
+              outline: "none",
+              boxShadow: "0 0 0 1px",
+            },
+          })}
           onChange={handleChange}
           onBlur={handleBlur}
           value={dateInput}
-        ></input>
+          placeholder="Enter a timestamp value"
+        />
+
+        {dateInput && (
+          <div className={css({ mt: "1", fontSize: "sm", color: "gray.600" })}>
+            Detected format:{" "}
+            {timestampFormat ||
+              (dateInput.length >= MS_TIMESTAMP_LENGTH
+                ? "milliseconds"
+                : "seconds")}
+          </div>
+        )}
 
         <RadioGroup.Root
           value={timestampFormat || "auto"}
           onValueChange={handleFormatChange}
-          style={{ marginTop: "8px" }}
+          className={css({
+            mt: "3",
+            display: "flex",
+            flexDir: "column",
+            gap: "2",
+          })}
         >
-          <RadioGroup.Label>Format:</RadioGroup.Label>
-          <div style={{ display: "flex", gap: "12px" }}>
-            <RadioGroup.Item value="auto">
-              <RadioGroup.ItemControl />
+          <RadioGroup.Label className={css({ fontWeight: "medium" })}>
+            Format:
+          </RadioGroup.Label>
+          <div className={css({ display: "flex", gap: "4", flexWrap: "wrap" })}>
+            <RadioGroup.Item
+              value="auto"
+              className={css({
+                display: "flex",
+                alignItems: "center",
+                gap: "2",
+                cursor: "pointer",
+              })}
+            >
+              <RadioGroup.ItemControl
+                className={css({
+                  width: "4",
+                  height: "4",
+                  borderRadius: "full",
+                  border: "2px solid",
+                  position: "relative",
+                  _checked: {
+                    "&::after": {
+                      content: '""',
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                      width: "2",
+                      height: "2",
+                      borderRadius: "full",
+                    },
+                  },
+                })}
+              />
               <RadioGroup.ItemText>Auto-detect</RadioGroup.ItemText>
               <RadioGroup.ItemHiddenInput />
             </RadioGroup.Item>
 
-            <RadioGroup.Item value="milliseconds">
-              <RadioGroup.ItemControl />
+            <RadioGroup.Item
+              value="milliseconds"
+              className={css({
+                display: "flex",
+                alignItems: "center",
+                gap: "2",
+                cursor: "pointer",
+              })}
+            >
+              <RadioGroup.ItemControl
+                className={css({
+                  width: "4",
+                  height: "4",
+                  borderRadius: "full",
+                  border: "2px solid",
+                  position: "relative",
+                  _checked: {
+                    "&::after": {
+                      content: '""',
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                      width: "2",
+                      height: "2",
+                      borderRadius: "full",
+                    },
+                  },
+                })}
+              />
               <RadioGroup.ItemText>Milliseconds (JS)</RadioGroup.ItemText>
               <RadioGroup.ItemHiddenInput />
             </RadioGroup.Item>
 
-            <RadioGroup.Item value="seconds">
-              <RadioGroup.ItemControl />
+            <RadioGroup.Item
+              value="seconds"
+              className={css({
+                display: "flex",
+                alignItems: "center",
+                gap: "2",
+                cursor: "pointer",
+              })}
+            >
+              <RadioGroup.ItemControl
+                className={css({
+                  width: "4",
+                  height: "4",
+                  borderRadius: "full",
+                  border: "2px solid",
+                  position: "relative",
+                  _checked: {
+                    "&::after": {
+                      content: '""',
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                      width: "2",
+                      height: "2",
+                      borderRadius: "full",
+                    },
+                  },
+                })}
+              />
               <RadioGroup.ItemText>Seconds (UNIX)</RadioGroup.ItemText>
               <RadioGroup.ItemHiddenInput />
             </RadioGroup.Item>
           </div>
         </RadioGroup.Root>
       </div>
-      <div>
-        <label>Date:</label>
-        <div>{formattedDate}</div>
+
+      <div
+        className={css({
+          display: "flex",
+          flexDir: "column",
+          gap: "2",
+          p: "3",
+          borderRadius: "md",
+          mb: "3",
+          border: "1px solid",
+        })}
+      >
+        <label className={css({ fontWeight: "medium" })}>Date:</label>
+        <div
+          className={css({ p: "2", borderRadius: "md", border: "1px solid" })}
+        >
+          {formattedDate}
+        </div>
       </div>
-      <div>
-        <label>Formatted Timestamp:</label>
-        <div>{formattedTimestamp}</div>
+
+      <div
+        className={css({
+          display: "flex",
+          flexDir: "column",
+          gap: "2",
+          p: "3",
+          borderRadius: "md",
+          border: "1px solid",
+        })}
+      >
+        <label className={css({ fontWeight: "medium" })}>
+          Formatted Timestamp:
+        </label>
+        <div
+          className={css({
+            p: "2",
+            borderRadius: "md",
+            border: "1px solid",
+            fontFamily: "mono",
+          })}
+        >
+          {formattedTimestamp}
+        </div>
       </div>
     </div>
   );
