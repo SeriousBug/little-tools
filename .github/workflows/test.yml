@@ -1,0 +1,8 @@
+on:
+  push:
+
+jobs:
+  build:
+    name: Build
+    uses: ./.github/workflows/_build.yml
+    secrets: inherit
