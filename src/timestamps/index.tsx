@@ -24,7 +24,6 @@ const useTimestampStore = create<State>((set, get) => ({
   setTimestampFormat: (timestampFormat) => set({ timestampFormat }),
   parseTimestampInput: (input: string) => {
     input = input.trim();
-    console.log("parseTimestampInput", input);
 
     const value = Number.parseInt(input, 10);
     if (Number.isNaN(value)) {
@@ -86,7 +85,6 @@ function useFormattedDate() {
   const dateTime = useTimestampStore((state) => state.dateTime);
 
   return useMemo(() => {
-    console.log("useFormattedDate", dateTime);
     return dateTime.toLocaleString();
   }, [dateTime]);
 }
@@ -107,7 +105,6 @@ export function TimestampPage() {
   const formattedDate = useFormattedDate();
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("onChange", e.target.value);
     setDateInput(e.target.value);
   }, []);
 
