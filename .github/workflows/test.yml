@@ -3,7 +3,7 @@ on:
   push:
 
 jobs:
-  build:
-    name: Build
-    uses: ./.github/workflows/_build.yml
+  test:
+    name: Run Unit Tests
+    uses: ./.github/workflows/_unit_test.yml
     secrets: inherit

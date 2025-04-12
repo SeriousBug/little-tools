@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import { resolve } from "path";
@@ -14,5 +15,9 @@ export default defineConfig({
       "@": resolve(__dirname, "./src"),
       "@styled-system": resolve(__dirname, "./styled-system"),
     },
+  },
+  test: {
+    environment: "happy-dom",
+    watch: false,
   },
 });
