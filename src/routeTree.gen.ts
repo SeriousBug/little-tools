@@ -10,9 +10,9 @@
 
 // Import Routes
 
-import { Route as rootRoute } from './routes/__root'
-import { Route as TimestampImport } from './routes/timestamp'
-import { Route as IndexImport } from './routes/index'
+import { Route as rootRoute } from './routes/__root';
+import { Route as TimestampImport } from './routes/timestamp';
+import { Route as IndexImport } from './routes/index';
 
 // Create/Update Routes
 
@@ -20,75 +20,75 @@ const TimestampRoute = TimestampImport.update({
   id: '/timestamp',
   path: '/timestamp',
   getParentRoute: () => rootRoute,
-} as any)
+} as any);
 
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRoute,
-} as any)
+} as any);
 
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
     '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
-    }
+      id: '/';
+      path: '/';
+      fullPath: '/';
+      preLoaderRoute: typeof IndexImport;
+      parentRoute: typeof rootRoute;
+    };
     '/timestamp': {
-      id: '/timestamp'
-      path: '/timestamp'
-      fullPath: '/timestamp'
-      preLoaderRoute: typeof TimestampImport
-      parentRoute: typeof rootRoute
-    }
+      id: '/timestamp';
+      path: '/timestamp';
+      fullPath: '/timestamp';
+      preLoaderRoute: typeof TimestampImport;
+      parentRoute: typeof rootRoute;
+    };
   }
 }
 
 // Create and export the route tree
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/timestamp': typeof TimestampRoute
+  '/': typeof IndexRoute;
+  '/timestamp': typeof TimestampRoute;
 }
 
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/timestamp': typeof TimestampRoute
+  '/': typeof IndexRoute;
+  '/timestamp': typeof TimestampRoute;
 }
 
 export interface FileRoutesById {
-  __root__: typeof rootRoute
-  '/': typeof IndexRoute
-  '/timestamp': typeof TimestampRoute
+  __root__: typeof rootRoute;
+  '/': typeof IndexRoute;
+  '/timestamp': typeof TimestampRoute;
 }
 
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/timestamp'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/timestamp'
-  id: '__root__' | '/' | '/timestamp'
-  fileRoutesById: FileRoutesById
+  fileRoutesByFullPath: FileRoutesByFullPath;
+  fullPaths: '/' | '/timestamp';
+  fileRoutesByTo: FileRoutesByTo;
+  to: '/' | '/timestamp';
+  id: '__root__' | '/' | '/timestamp';
+  fileRoutesById: FileRoutesById;
 }
 
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  TimestampRoute: typeof TimestampRoute
+  IndexRoute: typeof IndexRoute;
+  TimestampRoute: typeof TimestampRoute;
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   TimestampRoute: TimestampRoute,
-}
+};
 
 export const routeTree = rootRoute
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();
 
 /* ROUTE_MANIFEST_START
 {
