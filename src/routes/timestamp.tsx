@@ -1,7 +1,7 @@
-import { TimestampPage } from "@/timestamps";
-import { createFileRoute } from "@tanstack/react-router";
+import { TimestampPage } from '@/timestamps';
+import { createFileRoute } from '@tanstack/react-router';
 
-export const Route = createFileRoute("/timestamp")({
+export const Route = createFileRoute('/timestamp')({
   component: RouteComponent,
 });
 

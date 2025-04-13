@@ -1,20 +1,20 @@
-import { create } from "zustand";
-import { useCallback, useMemo, useState } from "react";
-import { RadioGroup } from "@ark-ui/react/radio-group";
-import { css } from "@styled-system/css";
+import { create } from 'zustand';
+import { useCallback, useMemo, useState } from 'react';
+import { RadioGroup } from '@ark-ui/react/radio-group';
+import { css } from '@styled-system/css';
 
-type State = {
+interface State {
   dateTime: Date;
   /** Whether the user pick an override for the timestamp format or not.
    *
    * By default we guess the format based on the timestamp value.
    * If the value is too large, it's probably in milliseconds.
    */
-  timestampFormat: "milliseconds" | "seconds" | undefined;
+  timestampFormat: 'milliseconds' | 'seconds' | undefined;
   // Actions
-  setTimestampFormat: (format: "milliseconds" | "seconds" | undefined) => void;
+  setTimestampFormat: (format: 'milliseconds' | 'seconds' | undefined) => void;
   parseTimestampInput: (input: string) => Date | undefined;
-};
+}
 
 const MS_TIMESTAMP_LENGTH = 13;
 
@@ -32,13 +32,13 @@ const useTimestampStore = create<State>((set, get) => ({
 
     const { timestampFormat } = get();
 
-    if (timestampFormat === "milliseconds") {
+    if (timestampFormat === 'milliseconds') {
       const newDate = new Date(value);
       set({ dateTime: newDate });
       return newDate;
     }
 
-    if (timestampFormat === "seconds") {
+    if (timestampFormat === 'seconds') {
       const newDate = new Date(value * 1000);
       set({ dateTime: newDate });
       return newDate;
@@ -63,10 +63,10 @@ function useFormattedTimestamp() {
 
   return useMemo(() => {
     // If explicit format is set, use it
-    if (timestampFormat === "milliseconds") {
+    if (timestampFormat === 'milliseconds') {
       return dateTime.getTime();
     }
-    if (timestampFormat === "seconds") {
+    if (timestampFormat === 'seconds') {
       return Math.floor(dateTime.getTime() / 1000);
     }
 
@@ -91,16 +91,12 @@ function useFormattedDate() {
 
 export function TimestampPage() {
   // useState for the input value
-  const [dateInput, setDateInput] = useState("");
+  const [dateInput, setDateInput] = useState('');
 
   // Use the hooks
-  const parseTimestampInput = useTimestampStore(
-    (state) => state.parseTimestampInput,
-  );
+  const parseTimestampInput = useTimestampStore((state) => state.parseTimestampInput);
   const timestampFormat = useTimestampStore((state) => state.timestampFormat);
-  const setTimestampFormat = useTimestampStore(
-    (state) => state.setTimestampFormat,
-  );
+  const setTimestampFormat = useTimestampStore((state) => state.setTimestampFormat);
   const formattedTimestamp = useFormattedTimestamp();
   const formattedDate = useFormattedDate();
 
@@ -114,60 +110,58 @@ export function TimestampPage() {
 
   const handleFormatChange = useCallback(
     (details: { value: string | null }) => {
-      if (!details.value || details.value === "auto") {
+      if (!details.value || details.value === 'auto') {
         setTimestampFormat(undefined);
       } else {
-        setTimestampFormat(details.value as "milliseconds" | "seconds");
+        setTimestampFormat(details.value as 'milliseconds' | 'seconds');
       }
       // Re-parse the current input with the new format if it's not empty
       if (dateInput) {
         parseTimestampInput(dateInput);
       }
     },
-    [setTimestampFormat, dateInput, parseTimestampInput],
+    [setTimestampFormat, dateInput, parseTimestampInput]
   );
 
   return (
     <div
       className={css({
-        maxW: "600px",
-        mx: "auto",
-        p: "6",
-        borderRadius: "md",
-        boxShadow: "sm",
-        display: "flex",
-        flexDir: "column",
-        gap: "4",
+        maxW: '600px',
+        mx: 'auto',
+        p: '6',
+        borderRadius: 'md',
+        boxShadow: 'sm',
+        display: 'flex',
+        flexDir: 'column',
+        gap: '4',
       })}
     >
-      <h2 className={css({ fontSize: "2xl", fontWeight: "bold", mb: "2" })}>
+      <h2 className={css({ fontSize: '2xl', fontWeight: 'bold', mb: '2' })}>
         Timestamp and Date Converter
       </h2>
-      <p className={css({ mb: "4" })}>
-        Convert timestamps to dates. Both millisecond timestamps (like
-        JavaScript) and second timestamps (UNIX) are supported.
+      <p className={css({ mb: '4' })}>
+        Convert timestamps to dates. Both millisecond timestamps (like JavaScript) and second
+        timestamps (UNIX) are supported.
       </p>
 
       <div
         className={css({
-          display: "flex",
-          flexDir: "column",
-          gap: "2",
-          mb: "4",
+          display: 'flex',
+          flexDir: 'column',
+          gap: '2',
+          mb: '4',
         })}
       >
-        <label className={css({ fontWeight: "medium", mb: "1" })}>
-          Timestamp:
-        </label>
+        <label className={css({ fontWeight: 'medium', mb: '1' })}>Timestamp:</label>
         <input
           className={css({
-            border: "1px solid",
-            borderRadius: "md",
-            p: "2",
-            width: "100%",
+            border: '1px solid',
+            borderRadius: 'md',
+            p: '2',
+            width: '100%',
             _focus: {
-              outline: "none",
-              boxShadow: "0 0 0 1px",
+              outline: 'none',
+              boxShadow: '0 0 0 1px',
             },
           })}
           onChange={handleChange}
@@ -177,55 +171,51 @@ export function TimestampPage() {
         />
 
         {dateInput && (
-          <div className={css({ mt: "1", fontSize: "sm", color: "gray.600" })}>
-            Detected format:{" "}
+          <div className={css({ mt: '1', fontSize: 'sm', color: 'gray.600' })}>
+            Detected format:{' '}
             {timestampFormat ||
-              (dateInput.length >= MS_TIMESTAMP_LENGTH
-                ? "milliseconds"
-                : "seconds")}
+              (dateInput.length >= MS_TIMESTAMP_LENGTH ? 'milliseconds' : 'seconds')}
           </div>
         )}
 
         <RadioGroup.Root
-          value={timestampFormat || "auto"}
+          value={timestampFormat || 'auto'}
           onValueChange={handleFormatChange}
           className={css({
-            mt: "3",
-            display: "flex",
-            flexDir: "column",
-            gap: "2",
+            mt: '3',
+            display: 'flex',
+            flexDir: 'column',
+            gap: '2',
           })}
         >
-          <RadioGroup.Label className={css({ fontWeight: "medium" })}>
-            Format:
-          </RadioGroup.Label>
-          <div className={css({ display: "flex", gap: "4", flexWrap: "wrap" })}>
+          <RadioGroup.Label className={css({ fontWeight: 'medium' })}>Format:</RadioGroup.Label>
+          <div className={css({ display: 'flex', gap: '4', flexWrap: 'wrap' })}>
             <RadioGroup.Item
               value="auto"
               className={css({
-                display: "flex",
-                alignItems: "center",
-                gap: "2",
-                cursor: "pointer",
+                display: 'flex',
+                alignItems: 'center',
+                gap: '2',
+                cursor: 'pointer',
               })}
             >
               <RadioGroup.ItemControl
                 className={css({
-                  width: "4",
-                  height: "4",
-                  borderRadius: "full",
-                  border: "2px solid",
-                  position: "relative",
+                  width: '4',
+                  height: '4',
+                  borderRadius: 'full',
+                  border: '2px solid',
+                  position: 'relative',
                   _checked: {
-                    "&::after": {
+                    '&::after': {
                       content: '""',
-                      position: "absolute",
-                      top: "50%",
-                      left: "50%",
-                      transform: "translate(-50%, -50%)",
-                      width: "2",
-                      height: "2",
-                      borderRadius: "full",
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: '2',
+                      height: '2',
+                      borderRadius: 'full',
                     },
                   },
                 })}
@@ -237,29 +227,29 @@ export function TimestampPage() {
             <RadioGroup.Item
               value="milliseconds"
               className={css({
-                display: "flex",
-                alignItems: "center",
-                gap: "2",
-                cursor: "pointer",
+                display: 'flex',
+                alignItems: 'center',
+                gap: '2',
+                cursor: 'pointer',
               })}
             >
               <RadioGroup.ItemControl
                 className={css({
-                  width: "4",
-                  height: "4",
-                  borderRadius: "full",
-                  border: "2px solid",
-                  position: "relative",
+                  width: '4',
+                  height: '4',
+                  borderRadius: 'full',
+                  border: '2px solid',
+                  position: 'relative',
                   _checked: {
-                    "&::after": {
+                    '&::after': {
                       content: '""',
-                      position: "absolute",
-                      top: "50%",
-                      left: "50%",
-                      transform: "translate(-50%, -50%)",
-                      width: "2",
-                      height: "2",
-                      borderRadius: "full",
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: '2',
+                      height: '2',
+                      borderRadius: 'full',
                     },
                   },
                 })}
@@ -271,29 +261,29 @@ export function TimestampPage() {
             <RadioGroup.Item
               value="seconds"
               className={css({
-                display: "flex",
-                alignItems: "center",
-                gap: "2",
-                cursor: "pointer",
+                display: 'flex',
+                alignItems: 'center',
+                gap: '2',
+                cursor: 'pointer',
               })}
             >
               <RadioGroup.ItemControl
                 className={css({
-                  width: "4",
-                  height: "4",
-                  borderRadius: "full",
-                  border: "2px solid",
-                  position: "relative",
+                  width: '4',
+                  height: '4',
+                  borderRadius: 'full',
+                  border: '2px solid',
+                  position: 'relative',
                   _checked: {
-                    "&::after": {
+                    '&::after': {
                       content: '""',
-                      position: "absolute",
-                      top: "50%",
-                      left: "50%",
-                      transform: "translate(-50%, -50%)",
-                      width: "2",
-                      height: "2",
-                      borderRadius: "full",
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: '2',
+                      height: '2',
+                      borderRadius: 'full',
                     },
                   },
                 })}
@@ -307,42 +297,38 @@ export function TimestampPage() {
 
       <div
         className={css({
-          display: "flex",
-          flexDir: "column",
-          gap: "2",
-          p: "3",
-          borderRadius: "md",
-          mb: "3",
-          border: "1px solid",
+          display: 'flex',
+          flexDir: 'column',
+          gap: '2',
+          p: '3',
+          borderRadius: 'md',
+          mb: '3',
+          border: '1px solid',
         })}
       >
-        <label className={css({ fontWeight: "medium" })}>Date:</label>
-        <div
-          className={css({ p: "2", borderRadius: "md", border: "1px solid" })}
-        >
+        <label className={css({ fontWeight: 'medium' })}>Date:</label>
+        <div className={css({ p: '2', borderRadius: 'md', border: '1px solid' })}>
           {formattedDate}
         </div>
       </div>
 
       <div
         className={css({
-          display: "flex",
-          flexDir: "column",
-          gap: "2",
-          p: "3",
-          borderRadius: "md",
-          border: "1px solid",
+          display: 'flex',
+          flexDir: 'column',
+          gap: '2',
+          p: '3',
+          borderRadius: 'md',
+          border: '1px solid',
         })}
       >
-        <label className={css({ fontWeight: "medium" })}>
-          Formatted Timestamp:
-        </label>
+        <label className={css({ fontWeight: 'medium' })}>Formatted Timestamp:</label>
         <div
           className={css({
-            p: "2",
-            borderRadius: "md",
-            border: "1px solid",
-            fontFamily: "mono",
+            p: '2',
+            borderRadius: 'md',
+            border: '1px solid',
+            fontFamily: 'mono',
           })}
         >
           {formattedTimestamp}

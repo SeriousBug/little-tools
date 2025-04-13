@@ -15,6 +15,11 @@ jobs:
     uses: ./.github/workflows/_unit_test.yml
     secrets: inherit
 
+  lint:
+    name: Lint Code
+    uses: ./.github/workflows/_lint.yml
+    secrets: inherit
+
   build:
     name: Build
     uses: ./.github/workflows/_build.yml
@@ -26,6 +31,7 @@ jobs:
     needs:
       - build
       - test
+      - lint
     permissions:
       pages: write # to deploy to Pages
       id-token: write # to verify the deployment originates from an appropriate source
