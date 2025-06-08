@@ -28,6 +28,7 @@
     "@ark-ui/react": "^5.5.0",
     "@tanstack/react-form": "^1.3.0",
     "@tanstack/react-router": "^1.115.0",
+    "buffer": "^6.0.3",
     "motion": "^12.6.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
