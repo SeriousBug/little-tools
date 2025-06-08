@@ -12,6 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root';
 import { Route as TimestampImport } from './routes/timestamp';
+import { Route as Base64Import } from './routes/base64';
 import { Route as IndexImport } from './routes/index';
 
 // Create/Update Routes
@@ -19,6 +20,12 @@ import { Route as IndexImport } from './routes/index';
 const TimestampRoute = TimestampImport.update({
   id: '/timestamp',
   path: '/timestamp',
+  getParentRoute: () => rootRoute,
+} as any);
+
+const Base64Route = Base64Import.update({
+  id: '/base64',
+  path: '/base64',
   getParentRoute: () => rootRoute,
 } as any);
 
@@ -39,6 +46,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport;
       parentRoute: typeof rootRoute;
     };
+    '/base64': {
+      id: '/base64';
+      path: '/base64';
+      fullPath: '/base64';
+      preLoaderRoute: typeof Base64Import;
+      parentRoute: typeof rootRoute;
+    };
     '/timestamp': {
       id: '/timestamp';
       path: '/timestamp';
@@ -53,36 +67,41 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute;
+  '/base64': typeof Base64Route;
   '/timestamp': typeof TimestampRoute;
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute;
+  '/base64': typeof Base64Route;
   '/timestamp': typeof TimestampRoute;
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute;
   '/': typeof IndexRoute;
+  '/base64': typeof Base64Route;
   '/timestamp': typeof TimestampRoute;
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths: '/' | '/timestamp';
+  fullPaths: '/' | '/base64' | '/timestamp';
   fileRoutesByTo: FileRoutesByTo;
-  to: '/' | '/timestamp';
-  id: '__root__' | '/' | '/timestamp';
+  to: '/' | '/base64' | '/timestamp';
+  id: '__root__' | '/' | '/base64' | '/timestamp';
   fileRoutesById: FileRoutesById;
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
+  Base64Route: typeof Base64Route;
   TimestampRoute: typeof TimestampRoute;
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  Base64Route: Base64Route,
   TimestampRoute: TimestampRoute,
 };
 
@@ -97,11 +116,15 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/base64",
         "/timestamp"
       ]
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/base64": {
+      "filePath": "base64.tsx"
     },
     "/timestamp": {
       "filePath": "timestamp.tsx"
