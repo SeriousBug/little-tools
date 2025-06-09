@@ -9,6 +9,7 @@ function NavLink({ to, children }: LinkProps) {
   return (
     <Link
       to={to}
+      aria-current={isCurrent ? 'page' : undefined}
       className={css({
         padding: '2',
         paddingLeft: '4',
