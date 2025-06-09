@@ -37,7 +37,7 @@ function RouteComponent() {
 
       <ul className={css({ listStyleType: 'disc', paddingLeft: '1.5rem', marginBottom: '1.5rem' })}>
         <li>
-          <strong>Free</strong> - No hidden costs or premium features
+          <strong>Free</strong> - No hidden costs, no premium features
         </li>
         <li>
           <strong>Private</strong> - Your data stays on your device
@@ -46,7 +46,7 @@ function RouteComponent() {
           <strong>Fast</strong> - Lightweight and quick to use
         </li>
         <li>
-          <strong>Safe</strong> - No malware, no trackers
+          <strong>Safe</strong> - No malware, no ads
         </li>
       </ul>
 

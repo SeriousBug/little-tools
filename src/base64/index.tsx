@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { useCallback } from 'react';
-import { RadioGroup } from '@ark-ui/react/radio-group';
 import { css } from '@styled-system/css';
 import { Buffer } from 'buffer';
+import { RadioGroup } from '../components/RadioGroup';
 
 interface State {
   inputText: string;
@@ -64,6 +64,11 @@ const useBase64Store = create<State>((set, get) => ({
 export function Base64Page() {
   const { inputText, outputText, mode, setMode, setInputText } = useBase64Store();
 
+  const modeOptions = [
+    { value: 'encode' as const, label: 'Encode to Base64' },
+    { value: 'decode' as const, label: 'Decode from Base64' },
+  ];
+
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       setInputText(e.target.value);
@@ -72,10 +77,8 @@ export function Base64Page() {
   );
 
   const handleModeChange = useCallback(
-    (details: { value: string | null }) => {
-      if (details.value === 'encode' || details.value === 'decode') {
-        setMode(details.value);
-      }
+    (value: 'encode' | 'decode') => {
+      setMode(value);
     },
     [setMode]
   );
@@ -115,89 +118,13 @@ export function Base64Page() {
         below.
       </p>
 
-      <RadioGroup.Root
+      <RadioGroup
+        options={modeOptions}
         value={mode}
         onValueChange={handleModeChange}
-        className={css({
-          mb: '4',
-          display: 'flex',
-          flexDir: 'column',
-          gap: '2',
-        })}
-      >
-        <RadioGroup.Label className={css({ fontWeight: 'medium' })}>Mode:</RadioGroup.Label>
-        <div className={css({ display: 'flex', gap: '4', flexWrap: 'wrap' })}>
-          <RadioGroup.Item
-            value="encode"
-            className={css({
-              display: 'flex',
-              alignItems: 'center',
-              gap: '2',
-              cursor: 'pointer',
-            })}
-          >
-            <RadioGroup.ItemControl
-              className={css({
-                width: '4',
-                height: '4',
-                borderRadius: 'full',
-                border: '2px solid',
-                position: 'relative',
-                _checked: {
-                  '&::after': {
-                    content: '""',
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: '2',
-                    height: '2',
-                    borderRadius: 'full',
-                    backgroundColor: 'blue.500',
-                  },
-                },
-              })}
-            />
-            <RadioGroup.ItemText>Encode to Base64</RadioGroup.ItemText>
-            <RadioGroup.ItemHiddenInput />
-          </RadioGroup.Item>
-
-          <RadioGroup.Item
-            value="decode"
-            className={css({
-              display: 'flex',
-              alignItems: 'center',
-              gap: '2',
-              cursor: 'pointer',
-            })}
-          >
-            <RadioGroup.ItemControl
-              className={css({
-                width: '4',
-                height: '4',
-                borderRadius: 'full',
-                border: '2px solid',
-                position: 'relative',
-                _checked: {
-                  '&::after': {
-                    content: '""',
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: '2',
-                    height: '2',
-                    borderRadius: 'full',
-                    backgroundColor: 'blue.500',
-                  },
-                },
-              })}
-            />
-            <RadioGroup.ItemText>Decode from Base64</RadioGroup.ItemText>
-            <RadioGroup.ItemHiddenInput />
-          </RadioGroup.Item>
-        </div>
-      </RadioGroup.Root>
+        label="Mode:"
+        className={css({ mb: '4' })}
+      />
 
       <div
         className={css({
