@@ -1,10 +1,23 @@
 import { css } from '@styled-system/css';
-import { createRootRoute, Link, LinkProps, Outlet } from '@tanstack/react-router';
+import { createRootRoute, Link, LinkProps, Outlet, useLocation } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
 function NavLink({ to, children }: LinkProps) {
+  const location = useLocation();
+  const isCurrent = location.pathname === to;
+
   return (
-    <Link to={to} className={css({ padding: '2', paddingLeft: '4', _first: { paddingLeft: '2' } })}>
+    <Link
+      to={to}
+      aria-current={isCurrent ? 'page' : undefined}
+      className={css({
+        padding: '2',
+        paddingLeft: '4',
+        transition: 'background-color 0.2s',
+        backgroundColor: isCurrent ? 'gray.800' : 'transparent',
+        _first: { paddingLeft: '2' },
+      })}
+    >
       {children}
     </Link>
   );
