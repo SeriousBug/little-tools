@@ -9,7 +9,6 @@ interface BaseTextInputProps {
   onBlur?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   className?: string;
   fontFamily?: 'inherit' | 'mono';
-  monospace?: boolean;
 }
 
 type SingleLineProps = BaseTextInputProps & {
