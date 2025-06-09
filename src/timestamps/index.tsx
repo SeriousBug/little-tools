@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { useCallback, useMemo, useState } from 'react';
-import { RadioGroup } from '@ark-ui/react/radio-group';
 import { css } from '@styled-system/css';
+import { RadioGroup } from '../components/RadioGroup';
 
 interface State {
   dateTime: Date;
@@ -100,6 +100,12 @@ export function TimestampPage() {
   const formattedTimestamp = useFormattedTimestamp();
   const formattedDate = useFormattedDate();
 
+  const formatOptions = [
+    { value: 'auto' as const, label: 'Auto-detect' },
+    { value: 'milliseconds' as const, label: 'Milliseconds (JS)' },
+    { value: 'seconds' as const, label: 'Seconds (UNIX)' },
+  ];
+
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setDateInput(e.target.value);
   }, []);
@@ -109,11 +115,11 @@ export function TimestampPage() {
   }, [dateInput, parseTimestampInput]);
 
   const handleFormatChange = useCallback(
-    (details: { value: string | null }) => {
-      if (!details.value || details.value === 'auto') {
+    (value: 'auto' | 'milliseconds' | 'seconds') => {
+      if (value === 'auto') {
         setTimestampFormat(undefined);
       } else {
-        setTimestampFormat(details.value as 'milliseconds' | 'seconds');
+        setTimestampFormat(value as 'milliseconds' | 'seconds');
       }
       // Re-parse the current input with the new format if it's not empty
       if (dateInput) {
@@ -178,136 +184,13 @@ export function TimestampPage() {
           </div>
         )}
 
-        <RadioGroup.Root
+        <RadioGroup
+          options={formatOptions}
           value={timestampFormat || 'auto'}
           onValueChange={handleFormatChange}
-          className={css({
-            mt: '3',
-            display: 'flex',
-            flexDir: 'column',
-            gap: '2',
-          })}
-        >
-          <RadioGroup.Label className={css({ fontWeight: 'medium' })}>Format:</RadioGroup.Label>
-          <div className={css({ display: 'flex', gap: '4', flexWrap: 'wrap' })}>
-            <RadioGroup.Item
-              value="auto"
-              className={css({
-                display: 'flex',
-                alignItems: 'center',
-                gap: '2',
-                cursor: 'pointer',
-              })}
-            >
-              <RadioGroup.ItemControl
-                className={css({
-                  width: '4',
-                  height: '4',
-                  borderRadius: 'full',
-                  border: '2px solid',
-                  position: 'relative',
-                  '&::after': {
-                    transition: 'background-color 0.2s',
-                    backgroundColor: 'transparent',
-                    content: '""',
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: '2',
-                    height: '2',
-                    borderRadius: 'full',
-                  },
-                  _checked: {
-                    '&::after': {
-                      backgroundColor: 'blue.500',
-                    },
-                  },
-                })}
-              />
-              <RadioGroup.ItemText>Auto-detect</RadioGroup.ItemText>
-              <RadioGroup.ItemHiddenInput />
-            </RadioGroup.Item>
-
-            <RadioGroup.Item
-              value="milliseconds"
-              className={css({
-                display: 'flex',
-                alignItems: 'center',
-                gap: '2',
-                cursor: 'pointer',
-              })}
-            >
-              <RadioGroup.ItemControl
-                className={css({
-                  width: '4',
-                  height: '4',
-                  borderRadius: 'full',
-                  border: '2px solid',
-                  position: 'relative',
-                  '&::after': {
-                    transition: 'background-color 0.2s',
-                    backgroundColor: 'transparent',
-                    content: '""',
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: '2',
-                    height: '2',
-                    borderRadius: 'full',
-                  },
-                  _checked: {
-                    '&::after': {
-                      backgroundColor: 'blue.500',
-                    },
-                  },
-                })}
-              />
-              <RadioGroup.ItemText>Milliseconds (JS)</RadioGroup.ItemText>
-              <RadioGroup.ItemHiddenInput />
-            </RadioGroup.Item>
-
-            <RadioGroup.Item
-              value="seconds"
-              className={css({
-                display: 'flex',
-                alignItems: 'center',
-                gap: '2',
-                cursor: 'pointer',
-              })}
-            >
-              <RadioGroup.ItemControl
-                className={css({
-                  width: '4',
-                  height: '4',
-                  borderRadius: 'full',
-                  border: '2px solid',
-                  position: 'relative',
-                  '&::after': {
-                    transition: 'background-color 0.2s',
-                    backgroundColor: 'transparent',
-                    content: '""',
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: '2',
-                    height: '2',
-                    borderRadius: 'full',
-                  },
-                  _checked: {
-                    '&::after': {
-                      backgroundColor: 'blue.500',
-                    },
-                  },
-                })}
-              />
-              <RadioGroup.ItemText>Seconds (UNIX)</RadioGroup.ItemText>
-              <RadioGroup.ItemHiddenInput />
-            </RadioGroup.Item>
-          </div>
-        </RadioGroup.Root>
+          label="Format:"
+          className={css({ mt: '3' })}
+        />
       </div>
 
       <div
