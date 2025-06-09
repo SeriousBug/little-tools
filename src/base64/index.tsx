@@ -3,6 +3,9 @@ import { useCallback } from 'react';
 import { css } from '@styled-system/css';
 import { Buffer } from 'buffer';
 import { RadioGroup } from '../components/RadioGroup';
+import { Button } from '../components/Button';
+import { TextInput } from '../components/TextInput';
+import { TextDisplay } from '../components/TextDisplay';
 
 interface State {
   inputText: string;
@@ -70,7 +73,7 @@ export function Base64Page() {
   ];
 
   const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
       setInputText(e.target.value);
     },
     [setInputText]
@@ -144,37 +147,11 @@ export function Base64Page() {
           <label className={css({ fontWeight: 'medium' })}>
             Input ({mode === 'encode' ? 'Plain Text' : 'Base64'}):
           </label>
-          <button
-            onClick={handleClear}
-            className={css({
-              px: '3',
-              py: '1',
-              borderRadius: 'md',
-              border: '1px solid',
-              cursor: 'pointer',
-              fontSize: 'sm',
-              _hover: {
-                backgroundColor: 'gray.600',
-              },
-            })}
-          >
-            Clear
-          </button>
+          <Button onClick={handleClear}>Clear</Button>
         </div>
-        <textarea
-          className={css({
-            border: '1px solid',
-            borderRadius: 'md',
-            p: '3',
-            width: '100%',
-            minHeight: '120px',
-            resize: 'vertical',
-            fontFamily: mode === 'decode' ? 'mono' : 'inherit',
-            _focus: {
-              outline: 'none',
-              boxShadow: '0 0 0 1px',
-            },
-          })}
+        <TextInput
+          multiline
+          fontFamily={mode === 'decode' ? 'mono' : 'inherit'}
           onChange={handleInputChange}
           value={inputText}
           placeholder={
@@ -206,39 +183,12 @@ export function Base64Page() {
             Output ({mode === 'encode' ? 'Base64' : 'Plain Text'}):
           </label>
           {outputText && !outputText.startsWith('TODO:') && !outputText.startsWith('Error:') && (
-            <button
-              onClick={handleCopy}
-              className={css({
-                px: '3',
-                py: '1',
-                borderRadius: 'md',
-                border: '1px solid',
-                cursor: 'pointer',
-                fontSize: 'sm',
-                _hover: {
-                  backgroundColor: 'gray.100',
-                },
-              })}
-            >
+            <Button variant="secondary" onClick={handleCopy}>
               Copy
-            </button>
+            </Button>
           )}
         </div>
-        <div
-          className={css({
-            p: '3',
-            borderRadius: 'md',
-            border: '1px solid',
-            minHeight: '120px',
-            fontFamily: mode === 'encode' ? 'mono' : 'inherit',
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-all',
-            backgroundColor: 'gray.50',
-            color: 'black',
-          })}
-        >
-          {outputText || 'Output will appear here...'}
-        </div>
+        <TextDisplay fontFamily={mode === 'encode' ? 'mono' : 'inherit'}>{outputText}</TextDisplay>
       </div>
     </div>
   );

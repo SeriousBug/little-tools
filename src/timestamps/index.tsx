@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { useCallback, useMemo, useState } from 'react';
 import { css } from '@styled-system/css';
 import { RadioGroup } from '../components/RadioGroup';
+import { TextInput } from '../components/TextInput';
+import { TextDisplay } from '../components/TextDisplay';
 
 interface State {
   dateTime: Date;
@@ -106,9 +108,12 @@ export function TimestampPage() {
     { value: 'seconds' as const, label: 'Seconds (UNIX)' },
   ];
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setDateInput(e.target.value);
-  }, []);
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setDateInput(e.target.value);
+    },
+    []
+  );
 
   const handleBlur = useCallback(() => {
     parseTimestampInput(dateInput);
@@ -159,17 +164,8 @@ export function TimestampPage() {
         })}
       >
         <label className={css({ fontWeight: 'medium', mb: '1' })}>Timestamp:</label>
-        <input
-          className={css({
-            border: '1px solid',
-            borderRadius: 'md',
-            p: '2',
-            width: '100%',
-            _focus: {
-              outline: 'none',
-              boxShadow: '0 0 0 1px',
-            },
-          })}
+        <TextInput
+          fontFamily="mono"
           onChange={handleChange}
           onBlur={handleBlur}
           value={dateInput}
@@ -205,9 +201,15 @@ export function TimestampPage() {
         })}
       >
         <label className={css({ fontWeight: 'medium' })}>Date:</label>
-        <div className={css({ p: '2', borderRadius: 'md', border: '1px solid' })}>
+        <TextDisplay
+          fontFamily="mono"
+          minHeight="auto"
+          backgroundColor="transparent"
+          color="inherit"
+          className={css({ p: '2', border: '1px solid' })}
+        >
           {formattedDate}
-        </div>
+        </TextDisplay>
       </div>
 
       <div
@@ -221,16 +223,15 @@ export function TimestampPage() {
         })}
       >
         <label className={css({ fontWeight: 'medium' })}>Formatted Timestamp:</label>
-        <div
-          className={css({
-            p: '2',
-            borderRadius: 'md',
-            border: '1px solid',
-            fontFamily: 'mono',
-          })}
+        <TextDisplay
+          fontFamily="mono"
+          minHeight="auto"
+          backgroundColor="transparent"
+          color="inherit"
+          className={css({ p: '2', border: '1px solid' })}
         >
           {formattedTimestamp}
-        </div>
+        </TextDisplay>
       </div>
     </div>
   );
