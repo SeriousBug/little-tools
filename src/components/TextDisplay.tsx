@@ -5,7 +5,6 @@ export interface TextDisplayProps {
   children: ReactNode;
   placeholder?: string;
   fontFamily?: 'inherit' | 'mono';
-  monospace?: boolean;
   minHeight?: string;
   backgroundColor?: string;
   color?: string;
