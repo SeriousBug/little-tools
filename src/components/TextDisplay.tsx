@@ -35,7 +35,7 @@ export function TextDisplay({
         color,
       })} ${className || ''}`}
     >
-      {children || placeholder}
+      <div>{children || placeholder}</div>
     </div>
   );
 }
