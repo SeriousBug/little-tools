@@ -4,7 +4,7 @@ import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
 function NavLink({ to, children }: LinkProps) {
   return (
-    <Link to={to} className={css({ padding: '2' })}>
+    <Link to={to} className={css({ padding: '2', paddingLeft: '4', _first: { paddingLeft: '2' } })}>
       {children}
     </Link>
   );
@@ -92,7 +92,6 @@ export const Route = createRootRoute({
           <NavLink to="/">About</NavLink>
           <NavSeparator />
           <NavLink to="/timestamp">Timestamp to Date</NavLink>
-          <NavSeparator />
           <NavLink to="/base64">Base64 Encoder/Decoder</NavLink>
         </div>
         <div
