@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:1.5;">
+    <g transform="matrix(0.032,0,0,0.032,0.528,0.24)">
+        <g transform="matrix(1,0,0,1,-76,4)">
+            <path d="M201,332L201,116L412,116" style="fill:none;stroke:black;stroke-width:33.33px;"/>
+        </g>
+        <g transform="matrix(-1,0,-0,-1,1043,981)">
+            <path d="M201,332L201,116L412,116" style="fill:none;stroke:black;stroke-width:33.33px;"/>
+        </g>
+        <g transform="matrix(31.25,0,0,31.25,23.75,398.75)">
+            <g transform="matrix(20.833333,0,0,20.833333,21.251219,9.969429)">
+            </g>
+            <text x="8.431px" y="9.969px" style="font-family:'FiraCodeNFM-Reg', 'FiraCode Nerd Font Mono', monospace;font-size:20.833px;">?</text>
+        </g>
+    </g>
+</svg>

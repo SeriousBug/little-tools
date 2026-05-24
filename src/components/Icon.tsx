@@ -2,15 +2,17 @@ import handIcon from '../assets/hand.svg?icon';
 import clockIcon from '../assets/clock.svg?icon';
 import base64Icon from '../assets/base64.svg?icon';
 import epubIcon from '../assets/epub.svg?icon';
+import questionIcon from '../assets/question.svg?icon';
 import { css } from '@styled-system/css';
 
-export type IconName = 'hand' | 'clock' | 'base64' | 'epub';
+export type IconName = 'hand' | 'clock' | 'base64' | 'epub' | 'question';
 
 const ICON_HTML: Record<IconName, string> = {
   hand: handIcon,
   clock: clockIcon,
   base64: base64Icon,
   epub: epubIcon,
+  question: questionIcon,
 };
 
 interface IconProps {

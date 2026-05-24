@@ -1,9 +1,13 @@
 import { create } from 'zustand';
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { css } from '@styled-system/css';
 import { Button } from '../components/Button';
+import { Icon } from '../components/Icon';
 import { TextInput } from '../components/TextInput';
 import { EpubDocument, Chapter } from './parser';
+
+const LOAD_HEADINGS_TOOLTIP =
+  'Find the first heading in each chapter and set it as the chapter name.';
 
 type Status = 'idle' | 'loading' | 'loaded' | 'saving' | 'loading-headings';
 
@@ -255,6 +259,103 @@ function ChapterRow({
   );
 }
 
+function LoadHeadingsButton({
+  onClick,
+  disabled,
+  loading,
+}: {
+  onClick: () => void;
+  disabled: boolean;
+  loading: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const timerRef = useRef<number | undefined>(undefined);
+
+  const clearTimer = useCallback(() => {
+    if (timerRef.current !== undefined) {
+      window.clearTimeout(timerRef.current);
+      timerRef.current = undefined;
+    }
+  }, []);
+
+  const showDelayed = useCallback(() => {
+    clearTimer();
+    timerRef.current = window.setTimeout(() => setOpen(true), 1000);
+  }, [clearTimer]);
+
+  const showImmediate = useCallback(() => {
+    clearTimer();
+    setOpen(true);
+  }, [clearTimer]);
+
+  const hide = useCallback(() => {
+    clearTimer();
+    setOpen(false);
+  }, [clearTimer]);
+
+  useEffect(() => clearTimer, [clearTimer]);
+
+  return (
+    <span className={css({ position: 'relative', display: 'inline-flex' })}>
+      <Button
+        variant="secondary"
+        onClick={onClick}
+        disabled={disabled}
+        aria-label={`Load from Chapter Headings. ${LOAD_HEADINGS_TOOLTIP}`}
+        aria-describedby={open ? 'load-headings-tooltip' : undefined}
+        onMouseEnter={showDelayed}
+        onMouseLeave={hide}
+        onFocus={showImmediate}
+        onBlur={hide}
+      >
+        {loading ? (
+          <span className={css({ display: 'inline-flex', alignItems: 'center', gap: '2' })}>
+            <Spinner /> Reading headings...
+          </span>
+        ) : (
+          <span className={css({ display: 'inline-flex', alignItems: 'center', gap: '1.5' })}>
+            Load from Chapter Headings
+            <span
+              onMouseEnter={showImmediate}
+              className={css({ display: 'inline-flex', alignItems: 'center' })}
+            >
+              <Icon name="question" size="14px" />
+            </span>
+          </span>
+        )}
+      </Button>
+      {open && (
+        <span
+          role="tooltip"
+          id="load-headings-tooltip"
+          className={css({
+            position: 'absolute',
+            top: 'calc(100% + 6px)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: 'fg',
+            color: 'bg.panel',
+            fontSize: 'xs',
+            lineHeight: 'short',
+            px: '2',
+            py: '1',
+            borderRadius: 'sm',
+            boxShadow: 'sm',
+            whiteSpace: 'normal',
+            maxW: '260px',
+            width: 'max-content',
+            textAlign: 'center',
+            pointerEvents: 'none',
+            zIndex: 10,
+          })}
+        >
+          {LOAD_HEADINGS_TOOLTIP}
+        </span>
+      )}
+    </span>
+  );
+}
+
 export function EpubPage() {
   const doc = useEpubStore((s) => s.doc);
   const chapters = useEpubStore((s) => s.chapters);
@@ -321,20 +422,19 @@ export function EpubPage() {
 
       {isLoaded && (
         <>
+          <div>
+            <div className={css({ fontWeight: 'medium' })}>File:</div>
+            <div className={css({ fontFamily: 'mono', fontSize: 'sm' })}>{filename}</div>
+          </div>
           <div
             className={css({
               display: 'flex',
               flexDir: 'row',
               alignItems: 'center',
-              justifyContent: 'space-between',
               gap: '2',
               flexWrap: 'wrap',
             })}
           >
-            <div>
-              <div className={css({ fontWeight: 'medium' })}>File:</div>
-              <div className={css({ fontFamily: 'mono', fontSize: 'sm' })}>{filename}</div>
-            </div>
             <div className={css({ display: 'flex', gap: '2', flexWrap: 'wrap' })}>
               <Button onClick={saveEpub} disabled={isBusy}>
                 {status === 'saving' ? (
@@ -345,19 +445,20 @@ export function EpubPage() {
                   'Save EPUB'
                 )}
               </Button>
-              <Button variant="secondary" onClick={loadFromHeadings} disabled={isBusy}>
-                {status === 'loading-headings' ? (
-                  <span className={css({ display: 'inline-flex', alignItems: 'center', gap: '2' })}>
-                    <Spinner /> Reading headings...
-                  </span>
-                ) : (
-                  'Load from Chapter Headings'
-                )}
-              </Button>
-              <Button variant="secondary" onClick={reset} disabled={isBusy}>
-                Load Different File
-              </Button>
+              <LoadHeadingsButton
+                onClick={loadFromHeadings}
+                disabled={isBusy}
+                loading={status === 'loading-headings'}
+              />
             </div>
+            <Button
+              variant="secondary"
+              onClick={reset}
+              disabled={isBusy}
+              className={css({ ml: 'auto' })}
+            >
+              Load Different File
+            </Button>
           </div>
 
           <div>
