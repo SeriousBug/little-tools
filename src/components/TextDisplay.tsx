@@ -16,8 +16,8 @@ export function TextDisplay({
   placeholder = 'Output will appear here...',
   fontFamily = 'inherit',
   minHeight = '120px',
-  backgroundColor = 'gray.50',
-  color = 'black',
+  backgroundColor = 'bg.subtle',
+  color = 'fg',
   className,
 }: TextDisplayProps) {
   return (
@@ -26,6 +26,7 @@ export function TextDisplay({
         p: '3',
         borderRadius: 'md',
         border: '1px solid',
+        borderColor: 'border',
         minHeight,
         fontFamily,
         whiteSpace: 'pre-wrap',
@@ -34,7 +35,7 @@ export function TextDisplay({
         color,
       })} ${className || ''}`}
     >
-      <div>{children || placeholder}</div>
+      <div>{children || <span className={css({ color: 'fg.muted' })}>{placeholder}</span>}</div>
     </div>
   );
 }

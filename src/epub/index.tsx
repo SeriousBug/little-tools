@@ -1,9 +1,13 @@
 import { create } from 'zustand';
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { css } from '@styled-system/css';
 import { Button } from '../components/Button';
+import { Icon } from '../components/Icon';
 import { TextInput } from '../components/TextInput';
 import { EpubDocument, Chapter } from './parser';
+
+const LOAD_HEADINGS_TOOLTIP =
+  'Find the first heading in each chapter and set it as the chapter name.';
 
 type Status = 'idle' | 'loading' | 'loaded' | 'saving' | 'loading-headings';
 
@@ -27,6 +31,67 @@ function isEpubFile(file: File): boolean {
     file.type === 'application/epub+zip' ||
     file.type === 'application/zip'
   );
+}
+
+const STORAGE_PREFIX = 'epub-renamer:v1:';
+const STORAGE_MAX_ENTRIES = 20;
+
+interface StoredEntry {
+  filename: string;
+  titles: Record<string, string>;
+  savedAt: number;
+}
+
+function fileKey(filename: string): string {
+  return `${STORAGE_PREFIX}${filename}`;
+}
+
+function loadStoredTitles(filename: string): Record<string, string> | null {
+  try {
+    const raw = localStorage.getItem(fileKey(filename));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as StoredEntry;
+    return parsed.titles ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function saveStoredTitles(filename: string, chapters: Chapter[]): void {
+  try {
+    const titles: Record<string, string> = {};
+    for (const c of chapters) titles[c.href] = c.title;
+    const entry: StoredEntry = { filename, titles, savedAt: Date.now() };
+    localStorage.setItem(fileKey(filename), JSON.stringify(entry));
+    pruneStorage();
+  } catch {
+    // localStorage may be unavailable or full; persistence is best-effort.
+  }
+}
+
+function pruneStorage(): void {
+  try {
+    const entries: { key: string; savedAt: number }[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith(STORAGE_PREFIX)) continue;
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      try {
+        const parsed = JSON.parse(raw) as StoredEntry;
+        entries.push({ key, savedAt: parsed.savedAt ?? 0 });
+      } catch {
+        localStorage.removeItem(key);
+      }
+    }
+    if (entries.length <= STORAGE_MAX_ENTRIES) return;
+    entries.sort((a, b) => a.savedAt - b.savedAt);
+    for (const e of entries.slice(0, entries.length - STORAGE_MAX_ENTRIES)) {
+      localStorage.removeItem(e.key);
+    }
+  } catch {
+    // ignore
+  }
 }
 
 function replaceExtension(filename: string, suffix: string): string {
@@ -61,9 +126,13 @@ const useEpubStore = create<State>((set, get) => ({
     set({ status: 'loading', error: null });
     try {
       const doc = await EpubDocument.load(file, file.name);
+      const stored = loadStoredTitles(file.name);
+      const chapters: Chapter[] = doc.chapters.map((c) =>
+        stored && stored[c.href] !== undefined ? { ...c, title: stored[c.href] } : { ...c }
+      );
       set({
         doc,
-        chapters: [...doc.chapters],
+        chapters,
         filename: file.name,
         status: 'loaded',
         error: null,
@@ -75,9 +144,11 @@ const useEpubStore = create<State>((set, get) => ({
   },
 
   updateChapterTitle: (id, title) => {
-    set((state) => ({
-      chapters: state.chapters.map((c) => (c.id === id ? { ...c, title } : c)),
-    }));
+    set((state) => {
+      const chapters = state.chapters.map((c) => (c.id === id ? { ...c, title } : c));
+      if (state.filename) saveStoredTitles(state.filename, chapters);
+      return { chapters };
+    });
   },
 
   saveEpub: async () => {
@@ -98,7 +169,7 @@ const useEpubStore = create<State>((set, get) => ({
   },
 
   loadFromHeadings: async () => {
-    const { doc, chapters, status } = get();
+    const { doc, chapters, status, filename } = get();
     if (!doc || status !== 'loaded') return;
     set({ status: 'loading-headings', error: null });
     try {
@@ -113,6 +184,7 @@ const useEpubStore = create<State>((set, get) => ({
           updated.push(c);
         }
       }
+      if (filename) saveStoredTitles(filename, updated);
       set({
         chapters: updated,
         status: 'loaded',
@@ -192,18 +264,21 @@ function DropZone({ onFile, disabled }: { onFile: (file: File) => void; disabled
       }}
       className={css({
         border: '2px dashed',
+        borderColor: 'border',
         borderRadius: 'md',
+        backgroundColor: 'bg.subtle',
         p: '8',
         textAlign: 'center',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
-        _hover: { backgroundColor: disabled ? 'transparent' : 'blackAlpha.100' },
+        transition: 'background-color 0.18s ease, border-color 0.18s ease',
+        _hover: disabled ? {} : { backgroundColor: 'bg.panel', borderColor: 'accent' },
       })}
     >
       <p className={css({ mb: '2', fontWeight: 'medium' })}>
         Drop an EPUB file here or click to select
       </p>
-      <p className={css({ fontSize: 'sm', opacity: 0.7 })}>Files stay on your device.</p>
+      <p className={css({ fontSize: 'sm', color: 'fg.muted' })}>Files stay on your device.</p>
       <input
         ref={fileInputRef}
         type="file"
@@ -241,7 +316,7 @@ function ChapterRow({
       <span
         className={css({
           fontSize: 'xs',
-          opacity: 0.6,
+          color: 'fg.muted',
           fontFamily: 'mono',
           wordBreak: 'break-all',
         })}
@@ -249,6 +324,103 @@ function ChapterRow({
         {chapter.href}
       </span>
     </div>
+  );
+}
+
+function LoadHeadingsButton({
+  onClick,
+  disabled,
+  loading,
+}: {
+  onClick: () => void;
+  disabled: boolean;
+  loading: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const timerRef = useRef<number | undefined>(undefined);
+
+  const clearTimer = useCallback(() => {
+    if (timerRef.current !== undefined) {
+      window.clearTimeout(timerRef.current);
+      timerRef.current = undefined;
+    }
+  }, []);
+
+  const showDelayed = useCallback(() => {
+    clearTimer();
+    timerRef.current = window.setTimeout(() => setOpen(true), 1000);
+  }, [clearTimer]);
+
+  const showImmediate = useCallback(() => {
+    clearTimer();
+    setOpen(true);
+  }, [clearTimer]);
+
+  const hide = useCallback(() => {
+    clearTimer();
+    setOpen(false);
+  }, [clearTimer]);
+
+  useEffect(() => clearTimer, [clearTimer]);
+
+  return (
+    <span className={css({ position: 'relative', display: 'inline-flex' })}>
+      <Button
+        variant="secondary"
+        onClick={onClick}
+        disabled={disabled}
+        aria-label={`Load from Chapter Headings. ${LOAD_HEADINGS_TOOLTIP}`}
+        aria-describedby={open ? 'load-headings-tooltip' : undefined}
+        onMouseEnter={showDelayed}
+        onMouseLeave={hide}
+        onFocus={showImmediate}
+        onBlur={hide}
+      >
+        {loading ? (
+          <span className={css({ display: 'inline-flex', alignItems: 'center', gap: '2' })}>
+            <Spinner /> Reading headings...
+          </span>
+        ) : (
+          <span className={css({ display: 'inline-flex', alignItems: 'center', gap: '1.5' })}>
+            Load from Chapter Headings
+            <span
+              onMouseEnter={showImmediate}
+              className={css({ display: 'inline-flex', alignItems: 'center' })}
+            >
+              <Icon name="question" size="14px" />
+            </span>
+          </span>
+        )}
+      </Button>
+      {open && (
+        <span
+          role="tooltip"
+          id="load-headings-tooltip"
+          className={css({
+            position: 'absolute',
+            top: 'calc(100% + 6px)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: 'fg',
+            color: 'bg.panel',
+            fontSize: 'xs',
+            lineHeight: 'short',
+            px: '2',
+            py: '1',
+            borderRadius: 'sm',
+            boxShadow: 'sm',
+            whiteSpace: 'normal',
+            maxW: '260px',
+            width: 'max-content',
+            textAlign: 'center',
+            pointerEvents: 'none',
+            zIndex: 10,
+          })}
+        >
+          {LOAD_HEADINGS_TOOLTIP}
+        </span>
+      )}
+    </span>
   );
 }
 
@@ -274,17 +446,21 @@ export function EpubPage() {
         width: '100%',
         mx: 'auto',
         p: '6',
-        borderRadius: 'md',
+        borderRadius: 'lg',
+        border: '1px solid',
+        borderColor: 'border',
+        backgroundColor: 'bg.panel',
+        color: 'fg',
         boxShadow: 'sm',
         display: 'flex',
         flexDir: 'column',
         gap: '4',
       })}
     >
-      <h2 className={css({ fontSize: '2xl', fontWeight: 'bold', mb: '2' })}>
+      <h2 className={css({ fontSize: '2xl', fontWeight: 'bold', mb: '2', color: 'fg' })}>
         EPUB Chapter Renamer
       </h2>
-      <p className={css({ mb: '2' })}>
+      <p className={css({ mb: '2', color: 'fg.muted' })}>
         Edit the table of contents in an EPUB file. Load an EPUB, rename chapters, then save a new
         copy. All processing happens in your browser.
       </p>
@@ -314,20 +490,19 @@ export function EpubPage() {
 
       {isLoaded && (
         <>
+          <div>
+            <div className={css({ fontWeight: 'medium' })}>File:</div>
+            <div className={css({ fontFamily: 'mono', fontSize: 'sm' })}>{filename}</div>
+          </div>
           <div
             className={css({
               display: 'flex',
               flexDir: 'row',
               alignItems: 'center',
-              justifyContent: 'space-between',
               gap: '2',
               flexWrap: 'wrap',
             })}
           >
-            <div>
-              <div className={css({ fontWeight: 'medium' })}>File:</div>
-              <div className={css({ fontFamily: 'mono', fontSize: 'sm' })}>{filename}</div>
-            </div>
             <div className={css({ display: 'flex', gap: '2', flexWrap: 'wrap' })}>
               <Button onClick={saveEpub} disabled={isBusy}>
                 {status === 'saving' ? (
@@ -338,19 +513,20 @@ export function EpubPage() {
                   'Save EPUB'
                 )}
               </Button>
-              <Button variant="secondary" onClick={loadFromHeadings} disabled={isBusy}>
-                {status === 'loading-headings' ? (
-                  <span className={css({ display: 'inline-flex', alignItems: 'center', gap: '2' })}>
-                    <Spinner /> Reading headings...
-                  </span>
-                ) : (
-                  'Load from Chapter Headings'
-                )}
-              </Button>
-              <Button variant="secondary" onClick={reset} disabled={isBusy}>
-                Load Different File
-              </Button>
+              <LoadHeadingsButton
+                onClick={loadFromHeadings}
+                disabled={isBusy}
+                loading={status === 'loading-headings'}
+              />
             </div>
+            <Button
+              variant="secondary"
+              onClick={reset}
+              disabled={isBusy}
+              className={css({ ml: 'auto' })}
+            >
+              Load Different File
+            </Button>
           </div>
 
           <div>

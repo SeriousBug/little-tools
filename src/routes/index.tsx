@@ -6,9 +6,27 @@ export const Route = createFileRoute('/')({ component: RouteComponent });
 function RouteComponent() {
   return (
     <div
-      className={css({ maxWidth: '800px', margin: '0 auto', padding: '2rem', lineHeight: '1.6' })}
+      className={css({
+        maxWidth: '800px',
+        width: '100%',
+        margin: '0 auto',
+        padding: '2rem',
+        lineHeight: '1.6',
+        backgroundColor: 'bg.panel',
+        borderRadius: 'lg',
+        border: '1px solid',
+        borderColor: 'border',
+        color: 'fg',
+      })}
     >
-      <h1 className={css({ fontSize: '3xl', fontWeight: 'bold', marginBottom: '1.5rem' })}>
+      <h1
+        className={css({
+          fontSize: '3xl',
+          fontWeight: 'bold',
+          marginBottom: '1.5rem',
+          color: 'fg',
+        })}
+      >
         Little Tools
       </h1>
 
@@ -23,6 +41,7 @@ function RouteComponent() {
           fontWeight: 'semibold',
           marginTop: '2rem',
           marginBottom: '1rem',
+          color: 'accent',
         })}
       >
         Why Little Tools?
@@ -35,19 +54,38 @@ function RouteComponent() {
 
       <p className={css({ marginBottom: '1rem' })}>I believe essential digital tools should be:</p>
 
-      <ul className={css({ listStyleType: 'disc', paddingLeft: '1.5rem', marginBottom: '1.5rem' })}>
-        <li>
-          <strong>Free</strong> - No hidden costs, no premium features
-        </li>
-        <li>
-          <strong>Private</strong> - Your data stays on your device
-        </li>
-        <li>
-          <strong>Fast</strong> - Lightweight and quick to use
-        </li>
-        <li>
-          <strong>Safe</strong> - No malware, no ads
-        </li>
+      <ul
+        className={css({
+          listStyleType: 'none',
+          paddingLeft: '0',
+          marginBottom: '1.5rem',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: '3',
+        })}
+      >
+        {(
+          [
+            ['Free', 'No hidden costs, no premium features'],
+            ['Private', 'Your data stays on your device'],
+            ['Fast', 'Lightweight and quick to use'],
+            ['Safe', 'No malware, no ads'],
+          ] as const
+        ).map(([title, body]) => (
+          <li
+            key={title}
+            className={css({
+              p: '3',
+              borderRadius: 'md',
+              backgroundColor: 'bg.subtle',
+              borderLeft: '3px solid',
+              borderColor: 'accent.secondary',
+            })}
+          >
+            <strong className={css({ color: 'accent' })}>{title}</strong>
+            <div className={css({ fontSize: 'sm', color: 'fg.muted', mt: '1' })}>{body}</div>
+          </li>
+        ))}
       </ul>
 
       <h2
@@ -56,6 +94,7 @@ function RouteComponent() {
           fontWeight: 'semibold',
           marginTop: '2rem',
           marginBottom: '1rem',
+          color: 'accent',
         })}
       >
         Open Source
@@ -67,14 +106,7 @@ function RouteComponent() {
         built with care and attention to detail.
       </p>
 
-      <p
-        className={css({
-          marginTop: '2rem',
-          padding: '1rem',
-          borderRadius: 'md',
-          fontStyle: 'italic',
-        })}
-      >
+      <p className={css({ marginBottom: '1rem' })}>
         Use these tools with confidence, knowing they&apos;re built with simplicity and security in
         mind by someone who cares about creating safer alternatives online.
       </p>
