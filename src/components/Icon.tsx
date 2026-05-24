@@ -4,8 +4,9 @@ import base64Icon from '../assets/base64.svg?icon';
 import epubIcon from '../assets/epub.svg?icon';
 import questionIcon from '../assets/question.svg?icon';
 import { css } from '@styled-system/css';
+import type { IconName } from './icon-names';
 
-export type IconName = 'hand' | 'clock' | 'base64' | 'epub' | 'question';
+export type { IconName };
 
 const ICON_HTML: Record<IconName, string> = {
   hand: handIcon,
