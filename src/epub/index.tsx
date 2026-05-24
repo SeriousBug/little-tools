@@ -33,6 +33,67 @@ function isEpubFile(file: File): boolean {
   );
 }
 
+const STORAGE_PREFIX = 'epub-renamer:v1:';
+const STORAGE_MAX_ENTRIES = 20;
+
+interface StoredEntry {
+  filename: string;
+  titles: Record<string, string>;
+  savedAt: number;
+}
+
+function fileKey(filename: string): string {
+  return `${STORAGE_PREFIX}${filename}`;
+}
+
+function loadStoredTitles(filename: string): Record<string, string> | null {
+  try {
+    const raw = localStorage.getItem(fileKey(filename));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as StoredEntry;
+    return parsed.titles ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function saveStoredTitles(filename: string, chapters: Chapter[]): void {
+  try {
+    const titles: Record<string, string> = {};
+    for (const c of chapters) titles[c.href] = c.title;
+    const entry: StoredEntry = { filename, titles, savedAt: Date.now() };
+    localStorage.setItem(fileKey(filename), JSON.stringify(entry));
+    pruneStorage();
+  } catch {
+    // localStorage may be unavailable or full; persistence is best-effort.
+  }
+}
+
+function pruneStorage(): void {
+  try {
+    const entries: { key: string; savedAt: number }[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith(STORAGE_PREFIX)) continue;
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      try {
+        const parsed = JSON.parse(raw) as StoredEntry;
+        entries.push({ key, savedAt: parsed.savedAt ?? 0 });
+      } catch {
+        localStorage.removeItem(key);
+      }
+    }
+    if (entries.length <= STORAGE_MAX_ENTRIES) return;
+    entries.sort((a, b) => a.savedAt - b.savedAt);
+    for (const e of entries.slice(0, entries.length - STORAGE_MAX_ENTRIES)) {
+      localStorage.removeItem(e.key);
+    }
+  } catch {
+    // ignore
+  }
+}
+
 function replaceExtension(filename: string, suffix: string): string {
   const lastDot = filename.lastIndexOf('.');
   const base = lastDot === -1 ? filename : filename.substring(0, lastDot);
@@ -65,9 +126,13 @@ const useEpubStore = create<State>((set, get) => ({
     set({ status: 'loading', error: null });
     try {
       const doc = await EpubDocument.load(file, file.name);
+      const stored = loadStoredTitles(file.name);
+      const chapters: Chapter[] = doc.chapters.map((c) =>
+        stored && stored[c.href] !== undefined ? { ...c, title: stored[c.href] } : { ...c }
+      );
       set({
         doc,
-        chapters: [...doc.chapters],
+        chapters,
         filename: file.name,
         status: 'loaded',
         error: null,
@@ -79,9 +144,11 @@ const useEpubStore = create<State>((set, get) => ({
   },
 
   updateChapterTitle: (id, title) => {
-    set((state) => ({
-      chapters: state.chapters.map((c) => (c.id === id ? { ...c, title } : c)),
-    }));
+    set((state) => {
+      const chapters = state.chapters.map((c) => (c.id === id ? { ...c, title } : c));
+      if (state.filename) saveStoredTitles(state.filename, chapters);
+      return { chapters };
+    });
   },
 
   saveEpub: async () => {
@@ -102,7 +169,7 @@ const useEpubStore = create<State>((set, get) => ({
   },
 
   loadFromHeadings: async () => {
-    const { doc, chapters, status } = get();
+    const { doc, chapters, status, filename } = get();
     if (!doc || status !== 'loaded') return;
     set({ status: 'loading-headings', error: null });
     try {
@@ -117,6 +184,7 @@ const useEpubStore = create<State>((set, get) => ({
           updated.push(c);
         }
       }
+      if (filename) saveStoredTitles(filename, updated);
       set({
         chapters: updated,
         status: 'loaded',
