@@ -106,6 +106,7 @@ export const Route = createRootRoute({
           <NavSeparator />
           <NavLink to="/timestamp">Timestamp to Date</NavLink>
           <NavLink to="/base64">Base64 Encoder/Decoder</NavLink>
+          <NavLink to="/epub">EPUB Chapter Renamer</NavLink>
         </div>
         <div
           className={css({
