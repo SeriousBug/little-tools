@@ -1,22 +1,13 @@
 import { css } from '@styled-system/css';
 import { createRootRoute, Link, LinkProps, Outlet, useLocation } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { Icon, IconName } from '../components/Icon';
 import { useSidebarStore } from '../sidebar';
+import { findToolByPathname, SITE_DEFAULT_TITLE, TOOLS } from '../tools';
 
-const NAV_ITEMS: {
-  to: NonNullable<LinkProps['to']>;
-  label: string;
-  icon: IconName;
-  wiggle?: boolean;
-}[] = [
-  { to: '/', label: 'About', icon: 'hand', wiggle: true },
-  { to: '/timestamp', label: 'Timestamp to Date', icon: 'clock' },
-  { to: '/base64', label: 'Base64 Encoder/Decoder', icon: 'base64' },
-  { to: '/epub', label: 'EPUB Chapter Renamer', icon: 'epub' },
-];
+const NAV_ITEMS = TOOLS.map(({ to, label, icon, wiggle }) => ({ to, label, icon, wiggle }));
 
 function NavLink({
   to,
@@ -291,6 +282,12 @@ function Footer() {
 
 function RootLayout() {
   const collapsed = useSidebarStore((s) => s.collapsed);
+  const location = useLocation();
+
+  useEffect(() => {
+    const tool = findToolByPathname(location.pathname);
+    document.title = tool?.title ?? SITE_DEFAULT_TITLE;
+  }, [location.pathname]);
 
   return (
     <div
