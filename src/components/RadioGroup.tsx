@@ -58,7 +58,10 @@ export function RadioGroup<T extends string = string>({
                 height: '4',
                 borderRadius: 'full',
                 border: '2px solid',
+                borderColor: 'border.strong',
+                backgroundColor: 'bg.panel',
                 position: 'relative',
+                transition: 'border-color 0.18s ease',
                 '&::after': {
                   transition: 'background-color 0.2s',
                   backgroundColor: 'transparent',
@@ -72,8 +75,9 @@ export function RadioGroup<T extends string = string>({
                   borderRadius: 'full',
                 },
                 _checked: {
+                  borderColor: 'accent',
                   '&::after': {
-                    backgroundColor: 'blue.500',
+                    backgroundColor: 'accent',
                   },
                 },
               })}

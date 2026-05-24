@@ -104,19 +104,31 @@ export function Base64Page() {
     <div
       className={css({
         maxW: '800px',
+        width: '100%',
         mx: 'auto',
         p: '6',
-        borderRadius: 'md',
+        borderRadius: 'lg',
+        border: '1px solid',
+        borderColor: 'border',
+        backgroundColor: 'bg.panel',
+        color: 'fg',
         boxShadow: 'sm',
         display: 'flex',
         flexDir: 'column',
         gap: '4',
       })}
     >
-      <h2 className={css({ fontSize: '2xl', fontWeight: 'bold', mb: '2' })}>
+      <h2
+        className={css({
+          fontSize: '2xl',
+          fontWeight: 'bold',
+          mb: '2',
+          color: 'fg',
+        })}
+      >
         Base64 Encoder/Decoder
       </h2>
-      <p className={css({ mb: '4' })}>
+      <p className={css({ mb: '4', color: 'fg.muted' })}>
         Encode text to Base64 or decode Base64 back to text. Select the mode and enter your text
         below.
       </p>
@@ -170,6 +182,8 @@ export function Base64Page() {
           p: '3',
           borderRadius: 'md',
           border: '1px solid',
+          borderColor: 'border',
+          backgroundColor: 'bg.subtle',
         })}
       >
         <div

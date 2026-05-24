@@ -31,13 +31,22 @@ export function TextInput({
 }: TextInputProps) {
   const baseStyles = css({
     border: '1px solid',
+    borderColor: 'border',
     borderRadius: 'md',
     p: multiline ? '3' : '2',
     width: '100%',
     fontFamily: fontFamily,
+    backgroundColor: 'bg.panel',
+    color: 'fg',
+    transition: 'border-color 0.18s ease, box-shadow 0.18s ease',
+    _placeholder: { color: 'fg.muted' },
+    _hover: {
+      borderColor: 'border.strong',
+    },
     _focus: {
       outline: 'none',
-      boxShadow: '0 0 0 1px',
+      borderColor: 'border.focus',
+      boxShadow: '0 0 0 3px rgba(60, 145, 230, 0.25)',
     },
   });
 

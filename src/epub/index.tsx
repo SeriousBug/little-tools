@@ -192,18 +192,21 @@ function DropZone({ onFile, disabled }: { onFile: (file: File) => void; disabled
       }}
       className={css({
         border: '2px dashed',
+        borderColor: 'border',
         borderRadius: 'md',
+        backgroundColor: 'bg.subtle',
         p: '8',
         textAlign: 'center',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
-        _hover: { backgroundColor: disabled ? 'transparent' : 'blackAlpha.100' },
+        transition: 'background-color 0.18s ease, border-color 0.18s ease',
+        _hover: disabled ? {} : { backgroundColor: 'bg.panel', borderColor: 'accent' },
       })}
     >
       <p className={css({ mb: '2', fontWeight: 'medium' })}>
         Drop an EPUB file here or click to select
       </p>
-      <p className={css({ fontSize: 'sm', opacity: 0.7 })}>Files stay on your device.</p>
+      <p className={css({ fontSize: 'sm', color: 'fg.muted' })}>Files stay on your device.</p>
       <input
         ref={fileInputRef}
         type="file"
@@ -241,7 +244,7 @@ function ChapterRow({
       <span
         className={css({
           fontSize: 'xs',
-          opacity: 0.6,
+          color: 'fg.muted',
           fontFamily: 'mono',
           wordBreak: 'break-all',
         })}
@@ -274,17 +277,21 @@ export function EpubPage() {
         width: '100%',
         mx: 'auto',
         p: '6',
-        borderRadius: 'md',
+        borderRadius: 'lg',
+        border: '1px solid',
+        borderColor: 'border',
+        backgroundColor: 'bg.panel',
+        color: 'fg',
         boxShadow: 'sm',
         display: 'flex',
         flexDir: 'column',
         gap: '4',
       })}
     >
-      <h2 className={css({ fontSize: '2xl', fontWeight: 'bold', mb: '2' })}>
+      <h2 className={css({ fontSize: '2xl', fontWeight: 'bold', mb: '2', color: 'fg' })}>
         EPUB Chapter Renamer
       </h2>
-      <p className={css({ mb: '2' })}>
+      <p className={css({ mb: '2', color: 'fg.muted' })}>
         Edit the table of contents in an EPUB file. Load an EPUB, rename chapters, then save a new
         copy. All processing happens in your browser.
       </p>

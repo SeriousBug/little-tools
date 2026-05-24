@@ -138,19 +138,24 @@ export function TimestampPage() {
     <div
       className={css({
         maxW: '600px',
+        width: '100%',
         mx: 'auto',
         p: '6',
-        borderRadius: 'md',
+        borderRadius: 'lg',
+        border: '1px solid',
+        borderColor: 'border',
+        backgroundColor: 'bg.panel',
+        color: 'fg',
         boxShadow: 'sm',
         display: 'flex',
         flexDir: 'column',
         gap: '4',
       })}
     >
-      <h2 className={css({ fontSize: '2xl', fontWeight: 'bold', mb: '2' })}>
+      <h2 className={css({ fontSize: '2xl', fontWeight: 'bold', mb: '2', color: 'fg' })}>
         Timestamp and Date Converter
       </h2>
-      <p className={css({ mb: '4' })}>
+      <p className={css({ mb: '4', color: 'fg.muted' })}>
         Convert timestamps to dates. Both millisecond timestamps (like JavaScript) and second
         timestamps (UNIX) are supported.
       </p>
@@ -173,7 +178,7 @@ export function TimestampPage() {
         />
 
         {dateInput && (
-          <div className={css({ mt: '1', fontSize: 'sm', color: 'gray.600' })}>
+          <div className={css({ mt: '1', fontSize: 'sm', color: 'fg.muted' })}>
             Detected format:{' '}
             {timestampFormat ||
               (dateInput.length >= MS_TIMESTAMP_LENGTH ? 'milliseconds' : 'seconds')}
@@ -198,15 +203,17 @@ export function TimestampPage() {
           borderRadius: 'md',
           mb: '3',
           border: '1px solid',
+          borderColor: 'border',
+          backgroundColor: 'bg.subtle',
         })}
       >
         <label className={css({ fontWeight: 'medium' })}>Date:</label>
         <TextDisplay
           fontFamily="mono"
           minHeight="auto"
-          backgroundColor="transparent"
-          color="inherit"
-          className={css({ p: '2', border: '1px solid' })}
+          backgroundColor="bg.panel"
+          color="fg"
+          className={css({ p: '2', border: '1px solid', borderColor: 'border' })}
         >
           {formattedDate}
         </TextDisplay>
@@ -220,15 +227,17 @@ export function TimestampPage() {
           p: '3',
           borderRadius: 'md',
           border: '1px solid',
+          borderColor: 'border',
+          backgroundColor: 'bg.subtle',
         })}
       >
         <label className={css({ fontWeight: 'medium' })}>Formatted Timestamp:</label>
         <TextDisplay
           fontFamily="mono"
           minHeight="auto"
-          backgroundColor="transparent"
-          color="inherit"
-          className={css({ p: '2', border: '1px solid' })}
+          backgroundColor="bg.panel"
+          color="fg"
+          className={css({ p: '2', border: '1px solid', borderColor: 'border' })}
         >
           {formattedTimestamp}
         </TextDisplay>
