@@ -12,9 +12,7 @@ const { render, TOOLS } = await import(pathToFileURL(ssrEntry).href);
 const ROOT_MARKER = '<div id="root"></div>';
 
 for (const tool of TOOLS) {
-  const htmlPath = tool.slug
-    ? join(distDir, tool.slug, 'index.html')
-    : join(distDir, 'index.html');
+  const htmlPath = tool.slug ? join(distDir, tool.slug, 'index.html') : join(distDir, 'index.html');
   const url = tool.slug ? `/${tool.slug}` : '/';
 
   const template = await readFile(htmlPath, 'utf8');
