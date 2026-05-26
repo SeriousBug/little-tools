@@ -1,12 +1,14 @@
 import { create } from 'zustand';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { css } from '@styled-system/css';
 import { RadioGroup } from '../components/RadioGroup';
 import { TextInput } from '../components/TextInput';
 import { TextDisplay } from '../components/TextDisplay';
 
 interface State {
-  dateTime: Date;
+  // null until the page mounts on the client — SSR can't render "now" without
+  // baking build time into the HTML, which would always mismatch hydration.
+  dateTime: Date | null;
   /** Whether the user pick an override for the timestamp format or not.
    *
    * By default we guess the format based on the timestamp value.
@@ -21,7 +23,7 @@ interface State {
 const MS_TIMESTAMP_LENGTH = 13;
 
 const useTimestampStore = create<State>((set, get) => ({
-  dateTime: new Date(),
+  dateTime: null,
   timestampFormat: undefined,
   setTimestampFormat: (timestampFormat) => set({ timestampFormat }),
   parseTimestampInput: (input: string) => {
@@ -64,6 +66,7 @@ function useFormattedTimestamp() {
   const dateTime = useTimestampStore((state) => state.dateTime);
 
   return useMemo(() => {
+    if (!dateTime) return '';
     // If explicit format is set, use it
     if (timestampFormat === 'milliseconds') {
       return dateTime.getTime();
@@ -87,15 +90,21 @@ function useFormattedDate() {
   const dateTime = useTimestampStore((state) => state.dateTime);
 
   return useMemo(() => {
-    return dateTime.toLocaleString();
+    return dateTime ? dateTime.toLocaleString() : '';
   }, [dateTime]);
 }
 
 export function TimestampPage() {
-  // useState for the input value
   const [dateInput, setDateInput] = useState('');
 
-  // Use the hooks
+  // Populate the "Date / Formatted Timestamp" displays with the current time
+  // after mount. Doing this at module load would mismatch SSR.
+  useEffect(() => {
+    if (!useTimestampStore.getState().dateTime) {
+      useTimestampStore.setState({ dateTime: new Date() });
+    }
+  }, []);
+
   const parseTimestampInput = useTimestampStore((state) => state.parseTimestampInput);
   const timestampFormat = useTimestampStore((state) => state.timestampFormat);
   const setTimestampFormat = useTimestampStore((state) => state.setTimestampFormat);

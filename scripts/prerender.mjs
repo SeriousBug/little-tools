@@ -13,7 +13,10 @@ const ROOT_MARKER = '<div id="root"></div>';
 
 for (const tool of TOOLS) {
   const htmlPath = tool.slug ? join(distDir, tool.slug, 'index.html') : join(distDir, 'index.html');
-  const url = tool.slug ? `/${tool.slug}` : '/';
+  // Static hosting serves /<slug>/index.html when the browser visits /<slug>/,
+  // so the client's location.pathname has a trailing slash. Match that here
+  // so useLocation().pathname is identical on server and client.
+  const url = tool.slug ? `/${tool.slug}/` : '/';
 
   const template = await readFile(htmlPath, 'utf8');
   if (!template.includes(ROOT_MARKER)) {
