@@ -51,6 +51,7 @@ function fileKey(filename: string): string {
 }
 
 function loadStoredTitles(filename: string): Record<string, string> | null {
+  if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem(fileKey(filename));
     if (!raw) return null;
@@ -62,6 +63,7 @@ function loadStoredTitles(filename: string): Record<string, string> | null {
 }
 
 function saveStoredTitles(filename: string, chapters: Chapter[]): void {
+  if (typeof window === 'undefined') return;
   try {
     const titles: Record<string, string> = {};
     for (const c of chapters) titles[c.href] = c.title;
@@ -74,6 +76,7 @@ function saveStoredTitles(filename: string, chapters: Chapter[]): void {
 }
 
 function pruneStorage(): void {
+  if (typeof window === 'undefined') return;
   try {
     const entries: { key: string; savedAt: number }[] = [];
     for (let i = 0; i < localStorage.length; i++) {

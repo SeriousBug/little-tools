@@ -34,17 +34,11 @@ interface ThemeState {
   cycle: () => void;
 }
 
-const initialPreference = readStoredPreference();
-const initialResolved: ResolvedTheme =
-  initialPreference === 'system' ? getSystemTheme() : initialPreference;
-
-if (typeof window !== 'undefined') {
-  applyTheme(initialResolved);
-}
-
+// Initial state must match server render. Real values are loaded from
+// localStorage after mount via hydrateThemeFromStorage().
 export const useThemeStore = create<ThemeState>((set, get) => ({
-  preference: initialPreference,
-  resolved: initialResolved,
+  preference: 'system',
+  resolved: 'light',
   setPreference: (preference) => {
     if (typeof window !== 'undefined') {
       if (preference === 'system') {
@@ -63,6 +57,14 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
     get().setPreference(next);
   },
 }));
+
+export function hydrateThemeFromStorage(): void {
+  if (typeof window === 'undefined') return;
+  const preference = readStoredPreference();
+  const resolved: ResolvedTheme = preference === 'system' ? getSystemTheme() : preference;
+  applyTheme(resolved);
+  useThemeStore.setState({ preference, resolved });
+}
 
 if (typeof window !== 'undefined') {
   const media = window.matchMedia('(prefers-color-scheme: dark)');

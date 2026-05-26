@@ -132,10 +132,15 @@ function applyTemplate(
 }
 
 export function seoPlugin(): Plugin {
+  let isSsrBuild = false;
   return {
     name: 'little-tools:seo',
     apply: 'build',
+    configResolved(config) {
+      isSsrBuild = Boolean(config.build?.ssr);
+    },
     async closeBundle() {
+      if (isSsrBuild) return;
       const distDir = join(process.cwd(), 'dist');
       const indexPath = join(distDir, 'index.html');
       const template = await readFile(indexPath, 'utf8');

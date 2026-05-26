@@ -23,7 +23,8 @@ function NavLink({
   collapsed: boolean;
 }) {
   const location = useLocation();
-  const isCurrent = location.pathname === to;
+  const normalized = location.pathname.replace(/\/+$/, '') || '/';
+  const isCurrent = normalized === to;
 
   return (
     <Link
