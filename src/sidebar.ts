@@ -2,19 +2,16 @@ import { create } from 'zustand';
 
 const STORAGE_KEY = 'little-tools:sidebar-collapsed';
 
-function readInitial(): boolean {
-  if (typeof window === 'undefined') return false;
-  return window.localStorage.getItem(STORAGE_KEY) === '1';
-}
-
 interface SidebarState {
   collapsed: boolean;
   toggle: () => void;
   setCollapsed: (value: boolean) => void;
 }
 
+// Initial state must match server render. Stored value is loaded after mount
+// via hydrateSidebarFromStorage().
 export const useSidebarStore = create<SidebarState>((set, get) => ({
-  collapsed: readInitial(),
+  collapsed: false,
   toggle: () => get().setCollapsed(!get().collapsed),
   setCollapsed: (value) => {
     if (typeof window !== 'undefined') {
@@ -27,3 +24,9 @@ export const useSidebarStore = create<SidebarState>((set, get) => ({
     set({ collapsed: value });
   },
 }));
+
+export function hydrateSidebarFromStorage(): void {
+  if (typeof window === 'undefined') return;
+  const collapsed = window.localStorage.getItem(STORAGE_KEY) === '1';
+  if (collapsed) useSidebarStore.setState({ collapsed: true });
+}

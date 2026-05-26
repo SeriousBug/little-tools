@@ -1,7 +1,8 @@
 import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
+import { hydrateRoot } from 'react-dom/client';
 import './index.css';
-import './theme';
+import { hydrateThemeFromStorage } from './theme';
+import { hydrateSidebarFromStorage } from './sidebar';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import { routeTree } from './routeTree.gen';
 
@@ -14,8 +15,13 @@ declare module '@tanstack/react-router' {
   }
 }
 
-createRoot(document.getElementById('root')!).render(
+hydrateRoot(
+  document.getElementById('root')!,
   <StrictMode>
     <RouterProvider router={router} />
   </StrictMode>
 );
+
+// After hydration, swap defaults for the user's stored preferences.
+hydrateThemeFromStorage();
+hydrateSidebarFromStorage();
