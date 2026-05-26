@@ -94,6 +94,44 @@ function generateId(): string {
   return Math.random().toString(36).substring(2, 12);
 }
 
+/**
+ * Returns the heading "level" (1–6) for an element if it looks like a heading,
+ * or null otherwise. Recognizes real <h1>–<h6> tags as well as <p>/<div>
+ * elements with a class like `heading-1` … `heading-6` (Scrivener exports
+ * use this pattern instead of real heading tags).
+ */
+function getHeadingLevel(el: Element): number | null {
+  const name = el.localName;
+  if (name && /^h[1-6]$/.test(name)) {
+    return Number(name[1]);
+  }
+  if (name === 'p' || name === 'div') {
+    const cls = el.getAttribute('class');
+    if (cls) {
+      const match = cls.match(/(?:^|\s)heading-([1-6])(?=\s|$)/);
+      if (match) return Number(match[1]);
+    }
+  }
+  return null;
+}
+
+/**
+ * Find the first descendant of `root` (in document order) whose heading level
+ * equals `level`. Returns null if none is found.
+ */
+function findHeadingAtLevel(root: Element, level: number): Element | null {
+  const stack: Element[] = [root];
+  while (stack.length) {
+    const el = stack.pop()!;
+    if (getHeadingLevel(el) === level) return el;
+    const children = el.children;
+    for (let i = children.length - 1; i >= 0; i--) {
+      stack.push(children[i]);
+    }
+  }
+  return null;
+}
+
 function parseXml(text: string, mimeType: 'application/xml' | 'application/xhtml+xml'): Document {
   const doc = new DOMParser().parseFromString(text, mimeType);
   const parserError = doc.getElementsByTagName('parsererror');
@@ -299,8 +337,14 @@ export class EpubDocument {
   /**
    * For a given chapter (referenced by id), open its content file and return the
    * first heading's text, or null if none can be found.
+   *
+   * If `level` is set (1–6), only headings at that level are considered;
+   * otherwise levels are tried in order 1→6.
    */
-  async getChapterHeading(chapterId: string): Promise<string | null> {
+  async getChapterHeading(
+    chapterId: string,
+    options: { level?: number } = {}
+  ): Promise<string | null> {
     const chapter = this.internalChapters.find((c) => c.id === chapterId);
     if (!chapter) return null;
 
@@ -323,24 +367,37 @@ export class EpubDocument {
       if (idEl) startElement = idEl;
     }
 
-    for (const tag of ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) {
-      const headings = getAllByLocalName(startElement, tag);
-      if (headings.length > 0) {
-        const heading = headings[0].textContent?.replace(/\s+/g, ' ').trim();
-        if (heading) return heading;
+    const levels =
+      options.level && options.level >= 1 && options.level <= 6
+        ? [options.level]
+        : [1, 2, 3, 4, 5, 6];
+
+    for (const level of levels) {
+      const heading = findHeadingAtLevel(startElement, level);
+      if (heading) {
+        const text = heading.textContent?.replace(/\s+/g, ' ').trim();
+        if (text) return text;
       }
     }
 
     if (fragment) {
-      for (const tag of ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) {
-        const headings = getAllByLocalName(doc, tag);
-        for (const h of headings) {
-          if (
-            startElement === h ||
-            startElement.compareDocumentPosition(h) & Node.DOCUMENT_POSITION_FOLLOWING
-          ) {
-            const heading = h.textContent?.replace(/\s+/g, ' ').trim();
-            if (heading) return heading;
+      const root = doc.documentElement;
+      for (const level of levels) {
+        const stack: Element[] = [root];
+        while (stack.length) {
+          const el = stack.pop()!;
+          if (getHeadingLevel(el) === level) {
+            if (
+              startElement === el ||
+              startElement.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING
+            ) {
+              const text = el.textContent?.replace(/\s+/g, ' ').trim();
+              if (text) return text;
+            }
+          }
+          const children = el.children;
+          for (let i = children.length - 1; i >= 0; i--) {
+            stack.push(children[i]);
           }
         }
       }

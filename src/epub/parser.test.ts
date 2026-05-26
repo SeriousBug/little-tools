@@ -136,6 +136,171 @@ describe('EpubDocument', () => {
     expect(ncxText).toContain('Renamed');
   });
 
+  it('reads Scrivener-style p.heading-N as a heading when no <h*> exists', async () => {
+    const zip = new JSZip();
+    zip.file('mimetype', 'application/epub+zip', { compression: 'STORE' });
+    zip.file('META-INF/container.xml', CONTAINER_XML);
+    zip.file('OEBPS/content.opf', OPF);
+    zip.file('OEBPS/nav.xhtml', NAV);
+    zip.file('OEBPS/toc.ncx', NCX);
+    zip.file(
+      'OEBPS/ch1.xhtml',
+      `<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head><title>Chapter 1</title></head>
+  <body>
+    <p class="heading-2">Subsection Alpha</p>
+    <p>Some content.</p>
+  </body>
+</html>`
+    );
+    zip.file(
+      'OEBPS/ch2.xhtml',
+      `<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head><title>Chapter 2</title></head>
+  <body>
+    <div id="start">
+      <p class="heading-1">Part Two</p>
+      <p class="heading-2">Subsection Beta</p>
+    </div>
+  </body>
+</html>`
+    );
+    const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/epub+zip' });
+    const file = new File([blob], 'scrivener.epub', { type: 'application/epub+zip' });
+
+    const doc = await EpubDocument.load(file, file.name);
+    const heading1 = await doc.getChapterHeading(doc.chapters[0].id);
+    const heading2 = await doc.getChapterHeading(doc.chapters[1].id);
+    expect(heading1).toBe('Subsection Alpha');
+    expect(heading2).toBe('Part Two');
+  });
+
+  it('prefers a real <h1> over a later p.heading-1 at the same level', async () => {
+    const zip = new JSZip();
+    zip.file('mimetype', 'application/epub+zip', { compression: 'STORE' });
+    zip.file('META-INF/container.xml', CONTAINER_XML);
+    zip.file('OEBPS/content.opf', OPF);
+    zip.file('OEBPS/nav.xhtml', NAV);
+    zip.file('OEBPS/toc.ncx', NCX);
+    zip.file(
+      'OEBPS/ch1.xhtml',
+      `<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head><title>Chapter 1</title></head>
+  <body>
+    <h1>Real Heading First</h1>
+    <p class="heading-1">Scrivener Heading Second</p>
+  </body>
+</html>`
+    );
+    zip.file(
+      'OEBPS/ch2.xhtml',
+      `<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head><title>Chapter 2</title></head>
+  <body>
+    <div id="start">
+      <h1>Real Heading First</h1>
+      <p class="heading-1">Scrivener Heading Second</p>
+    </div>
+  </body>
+</html>`
+    );
+    const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/epub+zip' });
+    const file = new File([blob], 'mixed.epub', { type: 'application/epub+zip' });
+
+    const doc = await EpubDocument.load(file, file.name);
+    const heading1 = await doc.getChapterHeading(doc.chapters[0].id);
+    const heading2 = await doc.getChapterHeading(doc.chapters[1].id);
+    expect(heading1).toBe('Real Heading First');
+    expect(heading2).toBe('Real Heading First');
+  });
+
+  it('filters heading lookup by level when requested', async () => {
+    const zip = new JSZip();
+    zip.file('mimetype', 'application/epub+zip', { compression: 'STORE' });
+    zip.file('META-INF/container.xml', CONTAINER_XML);
+    zip.file('OEBPS/content.opf', OPF);
+    zip.file('OEBPS/nav.xhtml', NAV);
+    zip.file('OEBPS/toc.ncx', NCX);
+    zip.file(
+      'OEBPS/ch1.xhtml',
+      `<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head><title>Chapter 1</title></head>
+  <body>
+    <p class="heading-1">Part One</p>
+    <p class="heading-2">Subsection Alpha</p>
+    <h1>Real Chapter Title</h1>
+  </body>
+</html>`
+    );
+    zip.file(
+      'OEBPS/ch2.xhtml',
+      `<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head><title>Chapter 2</title></head>
+  <body>
+    <div id="start">
+      <p class="heading-2">Subsection Beta</p>
+      <h1>Another Real Title</h1>
+    </div>
+  </body>
+</html>`
+    );
+    const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/epub+zip' });
+    const file = new File([blob], 'level.epub', { type: 'application/epub+zip' });
+
+    const doc = await EpubDocument.load(file, file.name);
+
+    expect(await doc.getChapterHeading(doc.chapters[0].id, { level: 1 })).toBe('Part One');
+    expect(await doc.getChapterHeading(doc.chapters[0].id, { level: 2 })).toBe('Subsection Alpha');
+
+    expect(await doc.getChapterHeading(doc.chapters[1].id, { level: 1 })).toBe(
+      'Another Real Title'
+    );
+    expect(await doc.getChapterHeading(doc.chapters[1].id, { level: 2 })).toBe('Subsection Beta');
+  });
+
+  it('returns null when no heading exists at the requested level', async () => {
+    const zip = new JSZip();
+    zip.file('mimetype', 'application/epub+zip', { compression: 'STORE' });
+    zip.file('META-INF/container.xml', CONTAINER_XML);
+    zip.file('OEBPS/content.opf', OPF);
+    zip.file('OEBPS/nav.xhtml', NAV);
+    zip.file('OEBPS/toc.ncx', NCX);
+    zip.file(
+      'OEBPS/ch1.xhtml',
+      `<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head><title>Chapter 1</title></head>
+  <body>
+    <h1>Only an H1</h1>
+    <p>Body text.</p>
+  </body>
+</html>`
+    );
+    zip.file(
+      'OEBPS/ch2.xhtml',
+      `<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head><title>Chapter 2</title></head>
+  <body>
+    <div id="start"><h1>Only an H1</h1></div>
+  </body>
+</html>`
+    );
+    const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/epub+zip' });
+    const file = new File([blob], 'no-h2.epub', { type: 'application/epub+zip' });
+
+    const doc = await EpubDocument.load(file, file.name);
+    expect(await doc.getChapterHeading(doc.chapters[0].id, { level: 2 })).toBeNull();
+    expect(await doc.getChapterHeading(doc.chapters[1].id, { level: 2 })).toBeNull();
+    expect(await doc.getChapterHeading(doc.chapters[0].id, { level: 1 })).toBe('Only an H1');
+  });
+
   it('rejects non-EPUB zip files', async () => {
     const zip = new JSZip();
     zip.file('hello.txt', 'world');
