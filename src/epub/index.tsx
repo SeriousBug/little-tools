@@ -7,9 +7,11 @@ import { TextInput } from '../components/TextInput';
 import { EpubDocument, Chapter } from './parser';
 
 const LOAD_HEADINGS_TOOLTIP =
-  'Find the first heading in each chapter and set it as the chapter name.';
+  'Find the first heading in each chapter and set it as the chapter name. Chapters without a matching heading keep their existing name.';
 
 type Status = 'idle' | 'loading' | 'loaded' | 'saving' | 'loading-headings';
+
+export type HeadingLevelChoice = 'any' | '1' | '2' | '3' | '4' | '5' | '6';
 
 interface State {
   doc: EpubDocument | null;
@@ -17,11 +19,13 @@ interface State {
   filename: string;
   status: Status;
   error: string | null;
+  headingLevel: HeadingLevelChoice;
 
   loadFile: (file: File) => Promise<void>;
   updateChapterTitle: (id: string, title: string) => void;
   saveEpub: () => Promise<void>;
   loadFromHeadings: () => Promise<void>;
+  setHeadingLevel: (level: HeadingLevelChoice) => void;
   reset: () => void;
 }
 
@@ -117,6 +121,7 @@ const useEpubStore = create<State>((set, get) => ({
   filename: '',
   status: 'idle',
   error: null,
+  headingLevel: 'any',
 
   loadFile: async (file: File) => {
     if (!isEpubFile(file)) {
@@ -169,14 +174,15 @@ const useEpubStore = create<State>((set, get) => ({
   },
 
   loadFromHeadings: async () => {
-    const { doc, chapters, status, filename } = get();
+    const { doc, chapters, status, filename, headingLevel } = get();
     if (!doc || status !== 'loaded') return;
     set({ status: 'loading-headings', error: null });
     try {
+      const level = headingLevel === 'any' ? undefined : Number(headingLevel);
       const updated: Chapter[] = [];
       let foundAny = false;
       for (const c of chapters) {
-        const heading = await doc.getChapterHeading(c.id);
+        const heading = await doc.getChapterHeading(c.id, { level });
         if (heading && heading.length > 0) {
           updated.push({ ...c, title: heading });
           foundAny = true;
@@ -196,8 +202,17 @@ const useEpubStore = create<State>((set, get) => ({
     }
   },
 
+  setHeadingLevel: (level) => set({ headingLevel: level }),
+
   reset: () => {
-    set({ doc: null, chapters: [], filename: '', status: 'idle', error: null });
+    set({
+      doc: null,
+      chapters: [],
+      filename: '',
+      status: 'idle',
+      error: null,
+      headingLevel: 'any',
+    });
   },
 }));
 
@@ -430,10 +445,12 @@ export function EpubPage() {
   const filename = useEpubStore((s) => s.filename);
   const status = useEpubStore((s) => s.status);
   const error = useEpubStore((s) => s.error);
+  const headingLevel = useEpubStore((s) => s.headingLevel);
   const loadFile = useEpubStore((s) => s.loadFile);
   const updateChapterTitle = useEpubStore((s) => s.updateChapterTitle);
   const saveEpub = useEpubStore((s) => s.saveEpub);
   const loadFromHeadings = useEpubStore((s) => s.loadFromHeadings);
+  const setHeadingLevel = useEpubStore((s) => s.setHeadingLevel);
   const reset = useEpubStore((s) => s.reset);
 
   const isBusy = status === 'loading' || status === 'saving' || status === 'loading-headings';
@@ -494,16 +511,24 @@ export function EpubPage() {
             <div className={css({ fontWeight: 'medium' })}>File:</div>
             <div className={css({ fontFamily: 'mono', fontSize: 'sm' })}>{filename}</div>
           </div>
+
           <div
             className={css({
               display: 'flex',
-              flexDir: 'row',
-              alignItems: 'center',
-              gap: '2',
-              flexWrap: 'wrap',
+              flexDir: 'column',
+              gap: '6',
+              py: '8',
             })}
           >
-            <div className={css({ display: 'flex', gap: '2', flexWrap: 'wrap' })}>
+            <div
+              className={css({
+                display: 'flex',
+                flexDir: 'row',
+                alignItems: 'center',
+                gap: '2',
+                flexWrap: 'wrap',
+              })}
+            >
               <Button onClick={saveEpub} disabled={isBusy}>
                 {status === 'saving' ? (
                   <span className={css({ display: 'inline-flex', alignItems: 'center', gap: '2' })}>
@@ -513,20 +538,68 @@ export function EpubPage() {
                   'Save EPUB'
                 )}
               </Button>
+              <Button
+                variant="secondary"
+                onClick={reset}
+                disabled={isBusy}
+                className={css({ ml: 'auto' })}
+              >
+                Load Different File
+              </Button>
+            </div>
+
+            <div
+              className={css({
+                display: 'flex',
+                flexDir: 'row',
+                alignItems: 'center',
+                gap: '2',
+                flexWrap: 'wrap',
+              })}
+            >
               <LoadHeadingsButton
                 onClick={loadFromHeadings}
                 disabled={isBusy}
                 loading={status === 'loading-headings'}
               />
+              <label
+                className={css({
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '1.5',
+                  fontSize: 'sm',
+                  color: 'fg.muted',
+                })}
+              >
+                Level:
+                <select
+                  value={headingLevel}
+                  onChange={(e) => setHeadingLevel(e.target.value as HeadingLevelChoice)}
+                  disabled={isBusy}
+                  aria-label="Heading level to look for"
+                  className={css({
+                    px: '2',
+                    py: '1',
+                    border: '1px solid',
+                    borderColor: 'border',
+                    borderRadius: 'sm',
+                    backgroundColor: 'bg.panel',
+                    color: 'fg',
+                    fontSize: 'sm',
+                    cursor: 'pointer',
+                    _disabled: { opacity: 0.5, cursor: 'not-allowed' },
+                  })}
+                >
+                  <option value="any">Any</option>
+                  <option value="1">H1</option>
+                  <option value="2">H2</option>
+                  <option value="3">H3</option>
+                  <option value="4">H4</option>
+                  <option value="5">H5</option>
+                  <option value="6">H6</option>
+                </select>
+              </label>
             </div>
-            <Button
-              variant="secondary"
-              onClick={reset}
-              disabled={isBusy}
-              className={css({ ml: 'auto' })}
-            >
-              Load Different File
-            </Button>
           </div>
 
           <div>
