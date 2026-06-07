@@ -64,6 +64,17 @@ export const TOOLS: Tool[] = [
     ogHeadline: 'EPUB Chapter Renamer',
     ogSubline: 'Rename ebook chapters locally. Your files never leave your device.',
   },
+  {
+    to: '/metadata',
+    slug: 'metadata',
+    label: 'Metadata Scrubber',
+    icon: 'eye',
+    title: 'Metadata Scrubber · Little Tools',
+    description:
+      'See what personal data your photos leak — GPS coordinates, camera model, timestamps. View and strip EXIF/metadata client-side, no upload.',
+    ogHeadline: 'Metadata Scrubber',
+    ogSubline: 'View & remove EXIF / metadata from images. 100% client-side, no upload.',
+  },
 ];
 
 export function findToolByPathname(pathname: string): Tool | undefined {

@@ -12,6 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root';
 import { Route as TimestampImport } from './routes/timestamp';
+import { Route as MetadataImport } from './routes/metadata';
 import { Route as EpubImport } from './routes/epub';
 import { Route as Base64Import } from './routes/base64';
 import { Route as IndexImport } from './routes/index';
@@ -21,6 +22,12 @@ import { Route as IndexImport } from './routes/index';
 const TimestampRoute = TimestampImport.update({
   id: '/timestamp',
   path: '/timestamp',
+  getParentRoute: () => rootRoute,
+} as any);
+
+const MetadataRoute = MetadataImport.update({
+  id: '/metadata',
+  path: '/metadata',
   getParentRoute: () => rootRoute,
 } as any);
 
@@ -67,6 +74,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EpubImport;
       parentRoute: typeof rootRoute;
     };
+    '/metadata': {
+      id: '/metadata';
+      path: '/metadata';
+      fullPath: '/metadata';
+      preLoaderRoute: typeof MetadataImport;
+      parentRoute: typeof rootRoute;
+    };
     '/timestamp': {
       id: '/timestamp';
       path: '/timestamp';
@@ -83,6 +97,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute;
   '/base64': typeof Base64Route;
   '/epub': typeof EpubRoute;
+  '/metadata': typeof MetadataRoute;
   '/timestamp': typeof TimestampRoute;
 }
 
@@ -90,6 +105,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute;
   '/base64': typeof Base64Route;
   '/epub': typeof EpubRoute;
+  '/metadata': typeof MetadataRoute;
   '/timestamp': typeof TimestampRoute;
 }
 
@@ -98,15 +114,16 @@ export interface FileRoutesById {
   '/': typeof IndexRoute;
   '/base64': typeof Base64Route;
   '/epub': typeof EpubRoute;
+  '/metadata': typeof MetadataRoute;
   '/timestamp': typeof TimestampRoute;
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths: '/' | '/base64' | '/epub' | '/timestamp';
+  fullPaths: '/' | '/base64' | '/epub' | '/metadata' | '/timestamp';
   fileRoutesByTo: FileRoutesByTo;
-  to: '/' | '/base64' | '/epub' | '/timestamp';
-  id: '__root__' | '/' | '/base64' | '/epub' | '/timestamp';
+  to: '/' | '/base64' | '/epub' | '/metadata' | '/timestamp';
+  id: '__root__' | '/' | '/base64' | '/epub' | '/metadata' | '/timestamp';
   fileRoutesById: FileRoutesById;
 }
 
@@ -114,6 +131,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
   Base64Route: typeof Base64Route;
   EpubRoute: typeof EpubRoute;
+  MetadataRoute: typeof MetadataRoute;
   TimestampRoute: typeof TimestampRoute;
 }
 
@@ -121,6 +139,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   Base64Route: Base64Route,
   EpubRoute: EpubRoute,
+  MetadataRoute: MetadataRoute,
   TimestampRoute: TimestampRoute,
 };
 
@@ -137,6 +156,7 @@ export const routeTree = rootRoute
         "/",
         "/base64",
         "/epub",
+        "/metadata",
         "/timestamp"
       ]
     },
@@ -148,6 +168,9 @@ export const routeTree = rootRoute
     },
     "/epub": {
       "filePath": "epub.tsx"
+    },
+    "/metadata": {
+      "filePath": "metadata.tsx"
     },
     "/timestamp": {
       "filePath": "timestamp.tsx"
